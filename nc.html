@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMNI SYNC - Wadah Konvergensi Intelektual</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background: linear-gradient(135deg, #05070f, #0a1930, #051228, #05070f);
+    background-size: 400% 400%;
+    animation: gradientGerak 18s ease infinite;
+    color: #e2e8f0;
+    font-family: 'Nunito', sans-serif;
+    margin: 0 auto; padding: 16px 16px 60px;
+    max-width: 680px;
+    position: relative; overflow-x: hidden; min-height: 100vh;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0;
+    background-image: 
+      linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px; z-index: -2; pointer-events: none;
+  }
+  
+  @keyframes gradientGerak { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes muncul { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulseGlow { 0%,100%{box-shadow:0 0 10px rgba(56,189,248,.3)} 50%{box-shadow:0 0 20px rgba(56,189,248,.6)} }
+
+  h1, h2, h3 { 
+    color: #38bdf8; font-weight: 800; 
+    text-shadow: 0 2px 8px rgba(56,189,248,.3); 
+    font-family: 'Orbitron','Nunito',sans-serif; 
+    letter-spacing: .5px; margin-bottom: 10px;
+  }
+  h1 { font-size: 26px; text-transform: uppercase; } 
+  h2 { font-size: 20px; }
+  .animasi-halaman { animation: muncul .5s ease-out forwards; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: block; width: 100%; margin: 10px 0; padding: 16px;
+    background: rgba(30,41,59,.75); backdrop-filter: blur(10px);
+    color: #f8fafc; border: 1px solid rgba(56,189,248,.3); border-radius: 12px;
+    font-size: 15px; font-weight: 700; text-align: left; cursor: pointer;
+    transition: all .25s ease; font-family: 'Nunito',sans-serif;
+    box-shadow: 0 4px 6px rgba(0,0,0,.2);
+  }
+  .btn:hover:not(:disabled) { 
+    background: rgba(56,189,248,.15); 
+    border-color: #38bdf8; 
+    transform: translateY(-2px); 
+    box-shadow: 0 6px 12px rgba(0,0,0,.3);
+  }
+  .btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  
+  .btn.ok { border-color: #22c55e; background: rgba(22,163,74,.2); text-align: center; }
+  .btn.ok:hover:not(:disabled) { background: rgba(22,163,74,.8); color:#fff; }
+  
+  .btn.biru { 
+    background: #0284c7; color: #fff; text-align: center; 
+    border-color: #38bdf8; animation: pulseGlow 3s infinite; 
+  }
+  .btn.biru:hover:not(:disabled) { background: #0369a1; }
+  
+  .btn.merah { border-color: #ef4444; background: rgba(153,27,27,.2); text-align: center; }
+  .btn.merah:hover:not(:disabled) { background: rgba(239,68,68,.9); color:#fff; }
+
+  /* Class Khusus Jawaban Kuis */
+  .btn.jawaban { font-weight: 600; }
+  .btn.benar { background: rgba(22,101,52,.9) !important; color:#fff !important; border-color:#22c55e !important; box-shadow: 0 0 15px rgba(34,197,94,0.4) !important; }
+  .btn.salah { background: rgba(153,27,27,.9) !important; color:#fff !important; border-color:#ef4444 !important; }
+
+  /* ===== KOTAK KONTEN ===== */
+  .kotak {
+    background: rgba(15,23,42,.6); backdrop-filter: blur(12px);
+    border: 1px solid rgba(56,189,248,.15); border-radius: 16px;
+    padding: 20px; margin: 16px 0; line-height: 1.7; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  }
+  .kotak.benar-bg { background: rgba(22,101,52,.25) !important; border-color:#22c55e; }
+  .kotak.salah-bg { background: rgba(153,27,27,.25) !important; border-color:#ef4444; }
+  .kecil { color: #94a3b8; font-size: 13px; font-style: italic; }
+
+  /* ===== PANDUAN ===== */
+  .panduan {
+    background: linear-gradient(135deg, rgba(56,189,248,.1), rgba(168,85,247,.05));
+    border: 1px solid rgba(56,189,248,.3); border-radius: 12px; padding: 16px; margin: 16px 0;
+  }
+  .panduan .step { 
+    display:inline-block; background:#38bdf8; color:#0f172a; 
+    width:24px; height:24px; line-height:24px; text-align:center; 
+    border-radius:50%; font-weight:800; font-size:13px; margin-right:8px; 
+  }
+  .panduan p { margin: 10px 0; font-size: 14.5px; }
+
+  /* ===== PROMOSI & BADGES ===== */
+  .promo-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+  .promo-grid a {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: 16px 10px; border-radius: 14px; text-decoration: none; color: #fff; 
+    font-weight: 700; font-size: 14px; transition: transform .2s, box-shadow .2s; 
+    border: 1px solid rgba(255,255,255,.1); letter-spacing: 0.5px;
+  }
+  .promo-grid a:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,.4); }
+  .promo-wa { background: linear-gradient(135deg,#128C7E,#075E54); }
+  .promo-ch { background: linear-gradient(135deg,#059669,#047857); }
+  .promo-ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+  .promo-tt { background: linear-gradient(135deg,#25F4EE,#000000,#FE2C55); }
+  .promo-grid .icon { font-size: 24px; margin-bottom: 8px; }
+
+  .badge { 
+    display:inline-block; background:rgba(56,189,248,.1); border:1px solid #38bdf8; 
+    border-radius:20px; padding:4px 12px; font-size:12px; color:#38bdf8; 
+    margin:3px; font-family: 'Orbitron',sans-serif; letter-spacing: 0.5px;
+  }
+  .badge-done { background:rgba(34,197,94,.15); border-color:#22c55e; color:#4ade80; }
+
+  .stat-bar { 
+    display:flex; justify-content:space-between; align-items:center; 
+    background: rgba(15,23,42,.8); border-radius:14px; padding:12px 16px; 
+    margin: 15px 0; border:1px solid rgba(56,189,248,.2); font-size:14px; font-weight:700;
+  }
+  .stat-bar .prog { 
+    flex:1; margin: 0 15px; height:10px; background: rgba(255,255,255,.05); 
+    border-radius:10px; overflow:hidden; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat-bar .prog div { 
+    height:100%; background: linear-gradient(90deg,#0ea5e9,#38bdf8); 
+    border-radius:10px; transition: width 0.8s ease-out; 
+  }
+
+  .footer-promo { margin-top: 40px; padding-top: 25px; border-top: 1px solid rgba(56,189,248,.2); }
+  .opsi-grid { display: flex; gap: 12px; margin-top: 20px; }
+  .highlight { color: #38bdf8; font-weight: bold; }
+  .teks-pusat { text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   DATA 15 MATERI LINTAS DISIPLIN — masing-masing 15 soal
+   ============================================================ */
+const MATERI = [
+  {
+    id:"sains1", judul:"Termodinamika: Hukum Energi", kategori:"Fisika", ikon:"🔥",
+    ringkas:"Energi tidak bisa diciptakan atau dimusnahkan, hanya berubah bentuk.",
+    teks:"Termodinamika mempelajari hubungan antara kalor (panas), kerja, dan energi. Hukum Pertama menyatakan energi total di alam semesta bersifat kekal. Misalnya energi kimia bensin berubah menjadi energi panas dan gerak pada mesin. Hukum Kedua berbicara tentang entropi: dalam sistem tertutup, entropi (kekacauan) cenderung meningkat. Inilah alasan panas selalu mengalir dari benda panas ke benda dingin tanpa bantuan luar.",
+    contoh:"Air panas yang dibiarkan di ruangan akan mendingin, melepaskan kalornya ke udara sekitar. Energi kalornya tidak hilang, tetapi tersebar ke lingkungan.",
+    soal:[
+      {q:"Hukum Pertama Termodinamika menyatakan bahwa energi...", o:["Dapat diciptakan","Kekal, hanya berubah bentuk","Selalu hilang","Tidak bisa berubah"], a:1, e:"Energi tidak diciptakan atau dimusnahkan, hanya berubah bentuk."},
+      {q:"Entropi dalam sistem tertutup cenderung...", o:["Menurun","Tetap","Meningkat","Nol"], a:2, e:"Hukum Kedua: entropi cenderung meningkat."},
+      {q:"Kalor mengalir secara alami dari...", o:["Dingin ke panas","Panas ke dingin","Sama ke sama","Acak"], a:1, e:"Kalor mengalir dari suhu tinggi ke suhu rendah."},
+      {q:"Contoh perubahan energi pada mesin bensin adalah...", o:["Kimia → panas & gerak","Listrik → cahaya","Nuklir → bunyi","Angin → kimia"], a:0, e:"Energi kimia bensin berubah menjadi panas dan gerak."},
+      {q:"Satuan SI untuk energi adalah...", o:["Newton","Joule","Watt","Pascal"], a:1, e:"Energi diukur dalam Joule (J)."},
+      {q:"Alat yang mengubah energi panas menjadi kerja mekanik disebut...", o:["Generator","Mesin kalor","Dinamo","Transformator"], a:1, e:"Mesin kalor mengubah panas menjadi kerja."},
+      {q:"Jika 100 J energi masuk dan 40 J keluar sebagai kerja, sisa energinya menjadi...", o:["60 J panas","40 J panas","100 J panas","0 J"], a:0, e:"100 - 40 = 60 J tersimpan sebagai panas internal."},
+      {q:"Proses tanpa pertukaran panas dengan lingkungan disebut...", o:["Isotermal","Adiabatik","Isobarik","Isokorik"], a:1, e:"Adiabatik = tanpa pertukaran kalor."},
+      {q:"Suhu absolut diukur dalam skala...", o:["Celsius","Fahrenheit","Kelvin","Reamur"], a:2, e:"Kelvin adalah skala suhu absolut."},
+      {q:"Nol Kelvin setara dengan...", o:["0°C","-273°C","273°C","100°C"], a:1, e:"0 K = -273°C, titik nol absolut."},
+      {q:"Efisiensi mesin kalor selalu...", o:["100%","Kurang dari 100%","Lebih dari 100%","Tak terhingga"], a:1, e:"Karena selalu ada energi terbuang sebagai panas."},
+      {q:"Perpindahan panas melalui zat padat tanpa aliran zat disebut...", o:["Konveksi","Radiasi","Konduksi","Evaporasi"], a:2, e:"Konduksi terjadi tanpa perpindahan partikel zat."},
+      {q:"Perpindahan panas melalui gelombang elektromagnetik disebut...", o:["Konduksi","Konveksi","Radiasi","Sublimasi"], a:2, e:"Radiasi tidak butuh medium perantara."},
+      {q:"Contoh konveksi adalah...", o:["Air mendidih","Setrika panas","Matahari menghangatkan bumi","Logam dipanaskan"], a:0, e:"Air mendidih menunjukkan aliran zat cair."},
+      {q:"Kapasitas kalor adalah...", o:["Kalor per satuan massa","Kalor untuk menaikkan suhu 1°C","Massa per kalor","Suhu per kalor"], a:1, e:"Kapasitas kalor = kalor untuk naik 1°C."}
+    ]
+  },
+  {
+    id:"tech1", judul:"Kecerdasan Buatan & Jaringan Saraf", kategori:"Teknologi", ikon:"🤖",
+    ringkas:"AI belajar pola dari data secara probabilistik, bukan kesadaran.",
+    teks:"Machine Learning (ML) adalah cabang AI di mana mesin belajar dari data. Kita tidak memprogram 'kucing punya 4 kaki', tapi memberi jutaan gambar kucing agar model mencari polanya sendiri. Deep Learning menggunakan Neural Networks yang terinspirasi dari otak manusia. AI modern tidak punya 'kesadaran', mereka adalah kalkulator probabilitas tingkat lanjut yang memprediksi hasil berdasarkan triliunan parameter.",
+    contoh:"Saat AI membedakan foto, ia menghitung probabilitas matematis dari distribusi piksel berdasarkan data latih, bukan 'melihat' seperti manusia.",
+    soal:[
+      {q:"AI adalah singkatan dari...", o:["Automatic Intelligence","Artificial Intelligence","Advanced Interface","Applied Innovation"], a:1, e:"AI = Artificial Intelligence."},
+      {q:"Machine Learning belajar dari...", o:["Aturan ketat","Data historis/Pola","Insting","Sensor gerak"], a:1, e:"ML belajar dari pola dalam set data."},
+      {q:"Deep Learning menggunakan arsitektur yang disebut...", o:["Pohon keputusan","Jaringan saraf tiruan","Spreadsheet logik","Diagram Venn"], a:1, e:"Memakai neural network berlapis (deep)."},
+      {q:"Model bahasa seperti ChatGPT termasuk dalam kategori...", o:["Generative AI","Discriminative AI","Hardware","Sistem Operasi"], a:0, e:"Generative AI dapat menghasilkan teks/konten baru."},
+      {q:"Data awal yang dipakai untuk 'mengajari' AI disebut...", o:["Data uji (Test)","Data latih (Training Data)","Data kosong","Cache"], a:1, e:"Data latih membentuk bobot (weights) pada algoritma."},
+      {q:"Miskonsepsi terbesar masyarakat umum tentang AI saat ini adalah?", o:["Bisa mengolah angka","Memiliki kesadaran/emosi layaknya manusia","Bisa membedakan gambar","Butuh listrik"], a:1, e:"AI saat ini belum memiliki AGI (kesadaran umum)."},
+      {q:"Titik pertemuan komputasi di AI disebut Node, terinspirasi dari...", o:["Sel darah","Neuron pada otak","Otot","Mata"], a:1, e:"Node meniru fungsi dasar neuron biologis."},
+      {q:"Supervised learning membutuhkan data yang...", o:["Sudah diberi label (Anotasi)","Acak murni","Tidak berformat","Kosong"], a:0, e:"Algoritma butuh label sebagai panduan 'kebenaran'."},
+      {q:"Unsupervised learning digunakan untuk mencari...", o:["Jawaban pasti","Pola tersembunyi (Clustering)","Nama programmer","Kerusakan hardware"], a:1, e:"Mencari pola dari data mentah yang tidak berlabel."},
+      {q:"Overfitting terjadi ketika model AI...", o:["Terlalu general/umum","Menghafal data latih dan gagal memprediksi data baru","Berjalan terlalu cepat","Kekurangan data"], a:1, e:"Model kehilangan kemampuan generalisasi di dunia nyata."},
+      {q:"Sistem AI untuk menganalisis dan mengenali objek visual disebut...", o:["Computer Vision","Natural Language Processing","Robotics","Text to Speech"], a:0, e:"Computer Vision berurusan dengan gambar/video."},
+      {q:"Masalah bias pada hasil AI umumnya berasal dari...", o:["Kerusakan CPU","Kualitas data latih yang sudah bias/diskriminatif sejak awal","Kecepatan internet","Warna monitor"], a:1, e:"'Garbage in, garbage out' berlaku kuat pada ML."},
+      {q:"Komponen hardware yang krusial untuk melatih LLM raksasa adalah...", o:["Monitor OLED","GPU (Graphics Processing Unit)","Keyboard","Sound Card"], a:1, e:"GPU sangat optimal untuk ribuan komputasi matriks paralel."},
+      {q:"Turing Test secara klasik dirancang untuk menguji...", o:["Kecepatan mesin","Kemampuan mesin meniru percakapan manusia hingga tak bisa dibedakan","Suhu server","Ketahanan baterai"], a:1, e:"Alan Turing merancangnya sebagai standar kecerdasan imitasi."},
+      {q:"Sistem yang memungkinkan mobil mengemudi otomatis (Self-Driving) sangat bergantung pada...", o:["Kamera biasa","Sensor fusi (LiDAR, Radar) & Real-time AI","GPS statis","Remote control"], a:1, e:"Membutuhkan persepsi instan dari berbagai sensor."}
+    ]
+  },
+  {
+    id:"sosial1", judul:"Psikologi: Efek Bystander", kategori:"Sosial", ikon:"👥",
+    ringkas:"Semakin banyak orang di keramaian, semakin kecil kemungkinan seseorang menolong.",
+    teks:"Efek Bystander adalah fenomena psikologi sosial di mana seseorang lebih kecil kemungkinannya menolong korban jika ada banyak saksi mata lain. Penyebab utamanya adalah 'Difusi Tanggung Jawab'—orang merasa beban moral terbagi ke seluruh kerumunan ('Pasti ada orang lain yang akan bantu'). Untuk mematahkan efek ini saat darurat, tunjuk satu orang spesifik untuk meminta tolong.",
+    contoh:"Kecelakaan di jalan ramai sering kali hanya ditonton atau direkam, karena tiap individu menunggu orang lain mengambil inisiatif medis atau memanggil polisi.",
+    soal:[
+      {q:"Alasan utama orang diam saat melihat kejadian darurat di keramaian adalah?", o:["Takut darah","Difusi Tanggung Jawab","Tidak punya HP","Sibuk"], a:1, e:"Tanggung jawab terasa 'terbagi' (Difusi Tanggung jawab)."},
+      {q:"Bagaimana cara paling efektif mematahkan Efek Bystander jika kamu korbannya?", o:["Diam saja","Berteriak minta tolong ke segala arah","Menunjuk individu spesifik (misal: 'Bapak baju merah, tolong!')","Pingsan"], a:2, e:"Menunjuk satu orang memindahkan 100% tanggung jawab kepadanya."},
+      {q:"Fenomena Bystander dipelajari secara mendalam dalam disiplin ilmu...", o:["Fisika","Psikologi Sosial","Biologi Kognitif","Filsafat Murni"], a:1, e:"Cabang psikologi yang meneliti pengaruh kelompok terhadap individu."},
+      {q:"Semakin BANYAK jumlah saksi mata, peluang seorang korban mendapat pertolongan secara paradoksikal akan...", o:["Meningkat drastis","Menurun","Tetap sama","Sangat cepat"], a:1, e:"Probabilitas intervensi berbanding terbalik dengan jumlah orang."},
+      {q:"Kasus kriminal di New York (1964) yang memicu penelitian efek ini melibatkan korban bernama...", o:["Kitty Genovese","Jack the Ripper","Zodiac","Al Capone"], a:0, e:"Kasus pembunuhan Genovese yang kabarnya disaksikan banyak tetangga tanpa ada yang menelepon polisi (meski detail ini belakangan diperdebatkan)."},
+      {q:"Selain difusi tanggung jawab, alasan lain bystander diam adalah...", o:["Social Influence / Takut dinilai salah bereaksi oleh publik","Mengantuk","Tidak suka korban","Menunggu hadiah"], a:0, e:"Rasa canggung atau takut bereaksi berlebihan jika ternyata bukan darurat."},
+      {q:"Jika Anda adalah SATU-SATUNYA saksi mata kecelakaan, kemungkinan Anda menolong akan...", o:["Sangat rendah","Sangat tinggi","Nol","Sama saja seperti di keramaian"], a:1, e:"Karena beban moral tidak bisa dilempar ke orang lain."},
+      {q:"Istilah untuk orang yang sekadar hadir melihat kejadian tanpa campur tangan adalah...", o:["Hero","Bystander (Pengamat)","Villain","Aktor Utama"], a:1, e:"Bystander berarti orang yang berdiri menonton/berada di lokasi."},
+      {q:"Efek ini mendemonstrasikan bahwa perilaku manusia dalam kelompok sering kali...", o:["Lebih rasional dari individu","Tereduksi dan mengikuti arus (konformitas pasif)","Selalu heroik","Sangat agresif"], a:1, e:"Kelompok dapat menumpulkan inisiatif dan rasionalitas proaktif individu."},
+      {q:"Ilmuwan psikologi yang memelopori eksperimen Bystander Effect adalah...", o:["Sigmund Freud","Bibb Latané & John Darley","Ivan Pavlov","B.F. Skinner"], a:1, e:"Mereka memodelkan eksperimen pasca kasus Genovese pada tahun 1968."},
+      {q:"Dalam eksperimen 'ruangan berasap' (smoke-filled room), partisipan yang sendirian cenderung...", o:["Mengabaikan asap","Segera melaporkan asap tersebut","Pingsan","Tertawa"], a:1, e:"75% melapor jika sendirian, tapi angka ini turun drastis jika partisipan lain diam."},
+      {q:"Fenomena di mana kelompok mayoritas diam karena mengira semuanya normal (saling melihat reaksi) disebut...", o:["Pluralistic Ignorance","Amnesia massal","Skizofrenia","Euforia"], a:0, e:"Salah membaca ketenangan orang lain sebagai bukti bahwa 'tidak ada bahaya'."},
+      {q:"Di era digital, Bystander Effect berevolusi menjadi...", o:["Cyber-bystander (Lebih memilih memvideo kejadian demi viral)","Membaca buku di lokasi","Rajin berdonasi","Berdebat di kolom komentar"], a:0, e:"Dorongan merekam kejadian sering mengalahkan empati untuk menolong langsung."},
+      {q:"Untuk melawan bias ini dalam keseharian, kita harus melatih diri menjadi...", o:["Pasif","Active Bystander (Berani mengambil langkah pertama)","Penonton kritis","Kritikus film"], a:1, e:"Inisiatif satu orang sering kali cukup untuk memecah kebisuan kerumunan."},
+      {q:"Di dalam sebuah forum diskusi, membiarkan penyebaran hoaks tanpa menegur termasuk bentuk dari...", o:["Bystander pasif terhadap misinformasi","Kebebasan berpendapat","Dukungan algoritma","Kecerdasan emosional"], a:0, e:"Sikap diam berarti membiarkan ruang publik terpolusi."}
+    ]
+  },
+  {
+    id:"filsafat1", judul:"Stoikisme: Dikotomi Kendali", kategori:"Filsafat", ikon:"🧠",
+    ringkas:"Penderitaan muncul karena kita mengkhawatirkan hal di luar kendali kita.",
+    teks:"Stoikisme adalah filsafat Yunani Kuno yang sangat praktis. Konsep intinya adalah 'Dikotomi Kendali': memisahkan dunia menjadi dua hal. Hal yang BISA kita kendalikan (pikiran, respons, pilihan tindakan, opini sendiri) dan hal yang TIDAK BISA kita kendalikan (cuaca, opini orang lain, masa lalu, kondisi fisik bawaan). Kebahagiaan dan ketenangan (Ataraxia) dicapai dengan fokus 100% pada area kendali kita, dan bersikap cuek/menerima area di luar kendali.",
+    contoh:"Anda terjebak macet. Macetnya di luar kendali Anda. Tapi marah atau santai mendengarkan podcast, itu sepenuhnya dalam kendali Anda.",
+    soal:[
+      {q:"Menurut prinsip Dikotomi Kendali, manakah yang SEPENUHNYA ada dalam kendali kita?", o:["Pikiran orang lain terhadap kita","Keputusan/Respons sadar kita sendiri","Hasil ujian akhir","Kondisi ekonomi negara"], a:1, e:"Hanya pikiran dan tindakan sadar kita yang benar-benar milik kita."},
+      {q:"Kaisar Romawi terkenal yang mempraktikkan Stoikisme di medan perang adalah...", o:["Julius Caesar","Marcus Aurelius","Nero","Augustus"], a:1, e:"Marcus Aurelius menulis buku harian legendaris berjudul 'Meditations'."},
+      {q:"Menurut Stoikisme, sumber utama penderitaan psikologis adalah...", o:["Kekurangan uang","Ekspektasi dan keterikatan pada hal di luar kendali","Orang-orang jahat","Faktor genetika"], a:1, e:"Kita menderita karena menuntut hal yang tak bisa kita atur berjalan sesuai mau kita."},
+      {q:"Tujuan akhir seorang praktisi Stoik adalah mencapai 'Ataraxia', yang berarti...", o:["Kekayaan berlimpah","Ketenangan jiwa yang tak tergoyahkan","Kepopuleran instan","Kekuasaan politik"], a:1, e:"Ketenangan mental yang kebal dari kekacauan dunia eksternal."},
+      {q:"Tokoh Stoik yang lahir sebagai budak namun menjadi filsuf berpengaruh adalah...", o:["Socrates","Epictetus","Aristoteles","Plato"], a:1, e:"Epictetus mengajarkan kebebasan mental sejati meski raga diperbudak."},
+      {q:"Pandangan Stoik terhadap opini atau hinaan dari orang lain adalah...", o:["Harus dibalas dengan keras","Diterima sebagai fakta mutlak","Abaikan, karena itu di luar kendali kita","Harus dilaporkan ke polisi"], a:2, e:"Pikiran orang lain adalah milik mereka (eksternal)."},
+      {q:"Konsep 'Amor Fati' (dicetuskan kembali oleh Nietzsche dari ide Stoik) bermakna...", o:["Mencintai takdir dan segala yang terjadi, baik atau buruk","Menolak nasib sial","Mencari cinta sejati","Benci kehidupan"], a:0, e:"Bukan sekadar pasrah, tapi mencintai dan memanfaatkan rintangan sebagai jalan."},
+      {q:"Respon seorang Stoik saat gagal mencapai target padahal sudah berusaha maksimal adalah...", o:["Menyalahkan sistem/orang lain","Depresi berlarut-larut","Menerima hasilnya secara objektif, lalu mengevaluasi usaha (proses)","Menyerah selamanya"], a:2, e:"Fokus pada proses yang bisa dikendalikan, lepaskan ego pada hasil."},
+      {q:"Filsuf Stoik, Seneca, sering menulis esai dalam format...", o:["Puisi cinta","Surat-surat moral kepada sahabatnya","Buku komik","Rumus matematika"], a:1, e:"Karya monumentalnya adalah 'Letters from a Stoic' (Epistulae Morales)."},
+      {q:"Stoikisme mengajarkan penggunaan 'Rasio' (Logika) untuk mengendalikan...", o:["Otot fisik","Orang bawahan","Emosi destruktif/irasional","Cuaca"], a:2, e:"Logika adalah tameng terhadap emosi meledak-ledak."},
+      {q:"'Memento Mori' adalah latihan mental Stoik untuk...", o:["Mengingat harta kekayaan","Mengingat bahwa kita pasti mati, agar menghargai waktu","Mengingat masa lalu","Mengingat utang"], a:1, e:"Kesadaran akan kematian memotong hal-hal remeh yang sering kita ributkan."},
+      {q:"Apakah Stoikisme berarti menekan emosi dan menjadi manusia tanpa perasaan?", o:["Ya, harus sedingin batu","Tidak, ia bertujuan melatih agar kita tidak *diperbudak* oleh emosi negatif","Ya, dilarang tertawa","Ya, harus selalu menyendiri"], a:1, e:"Stoik bukan 'emotionless', melainkan memiliki kecerdasan regulasi emosi."},
+      {q:"Filsafat ini sangat relevan untuk diaplikasikan saat kita menghadapi...", o:["Kemudahan hidup","Krisis, kegagalan, dan ketidakpastian tinggi","Tidur nyenyak","Makan malam"], a:1, e:"Sistem filsafat yang dirancang khusus sebagai jangkar saat badai kehidupan."},
+      {q:"Latihan 'Premeditatio Malorum' (membayangkan skenario terburuk) bertujuan untuk...", o:["Menjadi pesimis parah","Mempersiapkan mental dan menghancurkan rasa kaget jika hal buruk terjadi","Menakuti diri sendiri","Memanggil nasib buruk"], a:1, e:"Visualisasi negatif memvaksinasi pikiran dari kepanikan."},
+      {q:"Sikap anti-Baper dalam berdiskusi sains/logika sangat selaras dengan Stoikisme karena...", o:["Fokus pada validitas argumen (kendali), bukan ketersinggungan ego (emosi)","Mengizinkan debat kusir","Berfokus pada menang-kalah","Membolehkan hinaan"], a:0, e:"Memisahkan argumen dari harga diri personal."}
+    ]
+  },
+  {
+    id:"sejarah1", judul:"Sapiens: Mitos Penguasa Dunia", kategori:"Sejarah", ikon:"🌍",
+    ringkas:"Homo Sapiens menang karena imajinasi kolektif: Uang, Agama, dan Negara.",
+    teks:"Mengapa Homo Sapiens menaklukkan bumi padahal secara fisik lebih lemah dari Neanderthal? Yuval Noah Harari (Sapiens) menyebut jawabannya adalah Revolusi Kognitif: kemampuan manusia menciptakan 'Mitos Fiksi Bersama'. Uang, Perusahaan, Hukum, dan Batas Negara tidak ada wujud fisiknya di alam. Mereka eksis karena jutaan orang *sepakat* mempercayainya. Kepercayaan komunal ini memungkinkan kolaborasi masif antar orang asing.",
+    contoh:"Selembar uang kertas tidak punya nilai gizi atau fungsi teknis. Nilainya murni berasal dari kepercayaan (trust) bersama dalam sistem ekonomi.",
+    soal:[
+      {q:"Senjata evolusioner utama Homo Sapiens untuk menaklukkan dunia menurut Harari adalah...", o:["Alat dari batu","Otot yang besar","Kemampuan berimajinasi dan menciptakan mitos kolektif","Pertanian"], a:2, e:"Imajinasi memungkinkan jutaan orang asing bekerja sama."},
+      {q:"Buku fenomena yang mempopulerkan narasi sejarah ini berjudul...", o:["Guns, Germs, and Steel","Sapiens: A Brief History of Humankind","The Wealth of Nations","Cosmos"], a:1, e:"Karya Yuval Noah Harari terbitan 2011."},
+      {q:"Manakah dari berikut ini yang diklasifikasikan sebagai 'Konstruksi Sosial/Fiksi' oleh teori ini?", o:["Sungai dan Gunung","Sistem Mata Uang dan Hukum Negara","Hukum Gravitasi","Siklus Hujan"], a:1, e:"Hukum dan uang bergantung pada kesepakatan pikiran manusia."},
+      {q:"Spesies manusia purba kuat yang punah bersaing dengan Sapiens adalah...", o:["Homo Erectus","Neanderthal","Australopithecus","Meganthropus"], a:1, e:"Neanderthal kalah dalam fleksibilitas organisasi sosial skala besar."},
+      {q:"Angka Dunbar menyatakan batas alami manusia untuk bersosialisasi intim tanpa 'aturan fiksi' adalah sekitar...", o:["150 orang","1.000 orang","10.000 orang","5 orang"], a:0, e:"Di atas 150 orang, kelompok butuh hierarki, hukum, atau mitos pengikat."},
+      {q:"Fungsi fiksi (mitos kebangsaan/agama) bagi spesies kita adalah...", o:["Memicu perkelahian individual","Menyatukan ribuan hingga jutaan orang asing demi satu tujuan bersama","Membuat manusia malas","Meningkatkan kekuatan fisik"], a:1, e:"Kolaborasi fleksibel skala besar adalah kunci dominasi Sapiens."},
+      {q:"Menurut hukum, Perusahaan Terbatas (PT) merupakan contoh dari...", o:["Benda biologi","Fiksi Hukum (Legal Fiction)","Sistem cuaca","Kendaraan"], a:1, e:"Perusahaan dapat 'dituntut' atau 'bangkrut' layaknya entitas, padahal ia hanya selembar dokumen legal."},
+      {q:"Kekuatan mengikat dari institusi agama purba dibuktikan oleh pembangunan kuil masif seperti...", o:["Piramida Giza","Göbekli Tepe (Dibangun sebelum era pertanian)","Stonehenge","Candi Borobudur"], a:1, e:"Kerja sama pra-pertanian yang dimungkinkan oleh kepercayaan."},
+      {q:"Harari menyebut 'Revolusi Pertanian' sebagai penipuan sejarah karena...", o:["Gandum mahal harganya","Meningkatkan jumlah populasi, tetapi menurunkan kualitas hidup dan kesehatan individu","Petani ditipu raja","Tidak ada panen"], a:1, e:"Transisi ke agrikultur membawa penyakit, beban kerja berat, dan kelaparan massal."},
+      {q:"Teori evolusioner tentang asal usul bahasa (Gossip Theory) menyatakan bahasa berkembang untuk...", o:["Bicara soal cuaca","Membicarakan hubungan sosial, siapa yang jujur/curang dalam suku","Membuat puisi","Membaca mantra"], a:1, e:"Gosip menstabilkan hubungan dalam kelompok kecil."},
+      {q:"Uang adalah sistem kepercayaan antar-manusia yang paling sukses karena didasarkan pada...", o:["Cadangan emas absolut","Universal Trust (Kepercayaan Universal lintas budaya)","Sistem barter","Batu mulia"], a:1, e:"Orang yang beda agama/negara tetap saling percaya pada nilai 'uang'."},
+      {q:"Revolusi Sains (500 tahun lalu) dimulai dari sebuah pengakuan radikal bahwa...", o:["Bumi adalah pusat semesta","Manusia tidak tahu apa-apa (Ignoramus)","Sihir itu nyata","Manusia adalah dewa"], a:1, e:"Pengakuan ketidaktahuan memicu hasrat luar biasa untuk riset dan observasi."},
+      {q:"Kombinasi antara Sains dan Imperium (Kolonialisme) terjadi karena para penjelajah mencari...", o:["Pengetahuan dan Penaklukan wilayah baru sekaligus","Tempat berlibur","Hanya mencari rempah","Jalan pulang"], a:0, e:"Kapal penjelajah Eropa selalu membawa ilmuwan di samping tentara."},
+      {q:"Beda fiksi konstruktif Sapiens dengan 'kebohongan' murni adalah...", o:["Sama sekali tidak ada bedanya","Fiksi konstruktif (sistem hukum/uang) membentuk realitas operasional yang dipatuhi bersama","Fiksi tidak berguna","Kebohongan itu legal"], a:1, e:"Fiksi sosial membuahkan hasil nyata berupa negara, ekonomi, dan peradaban."},
+      {q:"Tahap revolusi masa depan di mana Sapiens mungkin berevolusi menyatu dengan mesin disebut era...", o:["Amfibi","Cyborg / Transhumanisme","Zaman Batu","Zaman Es"], a:1, e:"Manipulasi biologi dan AI dapat menciptakan spesies pasca-manusia (Homo Deus)."}
+    ]
+  },
+  {
+    id:"matematika1", judul:"Paradoks Logika & Matematika", kategori:"Matematika", ikon:"♾️",
+    ringkas:"Celah dalam sistem logika manusia yang membingungkan namun memicu ilmu baru.",
+    teks:"Matematika mengandalkan deduksi absolut, namun sejarahnya diwarnai 'Paradoks': pernyataan valid yang berujung pada kontradiksi tak masuk akal. Contoh: Paradoks Epimenides ('Kalimat ini adalah kebohongan' — jika benar, maka bohong; jika bohong, maka benar). Atau Paradoks Monty Hall dalam probabilitas statistik. Paradoks bukan sekadar teka-teki, melainkan sinyal bahwa sistem logika kita (atau pemahaman fisika kita) perlu diperbaiki dan diperluas.",
+    contoh:"Paradoks Zeno (Achilles & Kura-kura) membingungkan Yunani kuno karena kura-kura yang start duluan seolah tak bisa disusul akibat jarak yang terus terbagi dua. Hal ini baru pecah ribuan tahun kemudian dengan penemuan Kalkulus (limit deret tak hingga).",
+    soal:[
+      {q:"Kalimat 'Pernyataan ini salah' dikenal sebagai varian dari...", o:["Paradoks Fermi","Liar's Paradox (Paradoks Pembohong)","Paradoks Kakek","Paradoks Kembar"], a:1, e:"Pernyataan yang mereferensikan dirinya sendiri dan memicu putaran logika (self-referential)."},
+      {q:"Paradoks probabilitas terkait pilihan 3 pintu hadiah dalam acara kuis TV disebut...", o:["Paradoks Simpson","Paradoks Monty Hall","Paradoks Zeno","Paradoks Pascal"], a:1, e:"Mengganti pintu meningkatkan probabilitas menang dari 1/3 menjadi 2/3."},
+      {q:"Paradoks Zeno berargumen bahwa gerak itu mustahil karena...", o:["Bumi itu datar","Jarak antara dua titik bisa dibagi dua hingga tak terhingga","Gravitasi terlalu kuat","Waktu berhenti"], a:1, e:"Sebelum ada konsep limit konvergen, hal ini mustahil dibantah."},
+      {q:"Masalah kembali ke masa lalu dan mengubah sejarah silsilah keluarga dikenal sebagai...", o:["Bootstrap Paradox","Predestination","Grandfather Paradox (Paradoks Kakek)","Time Dilation"], a:2, e:"Menyebabkan pelanggaran kausalitas sebab-akibat."},
+      {q:"Paradoks Fermi dalam eksplorasi luar angkasa mempertanyakan...", o:["Berapa jumlah bintang?","Jika semesta dipenuhi miliaran planet layak huni, di mana keberadaan alien?","Kecepatan cahaya","Warna lubang hitam"], a:1, e:"Kontradiksi antara probabilitas tinggi adanya alien vs ketiadaan bukti empiris."},
+      {q:"Paradoks Zeno tentang deret tak terhingga akhirnya dipecahkan dengan matematika cabang...", o:["Aljabar linear","Geometri Euclidian","Kalkulus (Limit)","Trigonometri"], a:2, e:"Penjumlahan elemen tak hingga bisa memiliki hasil yang berhingga (konvergen)."},
+      {q:"Jika seluruh kayu penyusun kapal diganti baru seiring waktu, apakah itu masih kapal yang sama? Ini adalah pertanyaan dari...", o:["Paradoks Kapal Theseus","Paradoks Schrödinger","Paradoks Banak-Tarski","Paradoks Tukang Kayu"], a:0, e:"Mempertanyakan konsep fundamental tentang 'identitas' suatu objek."},
+      {q:"Di problem Monty Hall, jika Anda tetap pada pilihan pintu pertama Anda, probabilitas menang Anda adalah...", o:["50%","1/3 (33.3%)","2/3 (66.6%)","0%"], a:1, e:"Peluang awal tidak berubah jika Anda tidak memindahkan pilihan."},
+      {q:"'Tukang cukur desa mencukur semua pria yang tidak mencukur dirinya sendiri. Siapa yang mencukur tukang cukur?' Ini adalah contoh...", o:["Teka-teki anak","Paradoks Russell (Teori Himpunan)","Paradoks Fisika","Kesalahan tata bahasa"], a:1, e:"Paradoks yang mengguncang fondasi matematika set theory (ditemukan Bertrand Russell)."},
+      {q:"Dalam Paradoks Kembar relativitas, saudara yang melakukan perjalanan angkasa dengan kecepatan cahaya akan pulang ke bumi dengan kondisi...", o:["Lebih tua","Lebih muda dari kembarannya","Menjadi bayi","Kehilangan ingatan"], a:1, e:"Akibat efek dilasi waktu (Time Dilation)."},
+      {q:"Paradoks Simpson dalam pengolahan data statistik terjadi ketika...", o:["Kalkulator rusak","Kesimpulan dari tren populasi gabungan berlawanan dengan tren per sub-kelompok","Data hilang","Grafik terbalik"], a:1, e:"Sering menyebabkan kesimpulan riset medis/sosial yang salah kaprah."},
+      {q:"Pernyataan (A) 'Kalimat B salah' dan (B) 'Kalimat A benar' akan menghasilkan...", o:["Kebenaran mutlak","Kontradiksi logika melingkar (Circular Paradox)","Fakta matematika","Tidak ada arti"], a:1, e:"Keduanya saling membatalkan validitas satu sama lain."},
+      {q:"Eksperimen Kucing Schrödinger awalnya dibuat untuk menunjukkan betapa absurdnya...", o:["Cara memelihara kucing","Interpretasi Kopenhagen dalam Mekanika Kuantum terhadap objek makro","Fisika klasik","Biologi hewan"], a:1, e:"Menunjukkan masalah 'Superposisi' pada benda yang bukan partikel."},
+      {q:"Paradoks Nilai (Paradoks Air dan Berlian) dalam ekonomi menyatakan bahwa...", o:["Berlian bisa diminum","Air yang sangat vital harganya murah, sedangkan berlian yang tidak vital sangat mahal","Semua mahal","Air lebih keras"], a:1, e:"Dipecahkan oleh konsep utilitas marginal (Marginal Utility)."},
+      {q:"Tujuan utama mempelajari paradoks dalam logika adalah untuk...", o:["Terlihat pintar di pergaulan","Bikin pusing","Mengidentifikasi celah (flaw) dan menyempurnakan struktur logika kita","Menipu orang awam"], a:2, e:"Paradoks memaksa sains dan matematika merumuskan aksioma yang lebih ketat."}
+    ]
+  },
+  {
+    id:"kimia1", judul:"CRISPR-Cas9 & Bioetika", kategori:"Kimia/Biologi", ikon:"🧬",
+    ringkas:"Teknologi 'Gunting Genetik' yang bisa menulis ulang kode DNA kehidupan.",
+    teks:"CRISPR-Cas9 adalah terobosan rekayasa genetika terbesar abad 21. Bagaikan fungsi 'Find & Replace' pada teks komputer, teknologi ini mampu menemukan urutan spesifik pada DNA lalu memotong dan menggantinya. Awalnya, ini adalah sistem kekebalan adaptif alami bakteri melawan virus. Kini aplikasinya mencakup: modifikasi tanaman tahan kekeringan, menyembuhkan penyakit genetik bawaan, hingga wacana ekstrem merancang DNA embrio manusia ('Designer Babies').",
+    contoh:"Menghapus gen spesifik penghasil protein pada nyamuk Aedes agar mereka tak lagi dapat menjadi inang demam berdarah.",
+    soal:[
+      {q:"Fungsi utama dari sistem bioteknologi CRISPR-Cas9 adalah...", o:["Kloning domba","Mengedit, memotong, dan menyisipkan sekuens DNA secara presisi","Membunuh bakteri","Membuat vaksin virus mati"], a:1, e:"Berfungsi sebagai alat rekayasa genetik (Gunting molekuler)."},
+      {q:"Sistem CRISPR secara alami berevolusi di dalam...", o:["Tubuh manusia","Tanaman gandum","Bakteri (sebagai sistem imun melawan bakteriofag/virus)","Sel Kanker"], a:2, e:"Bakteri menggunakannya untuk menyimpan memori genetik virus penyerang."},
+      {q:"Dalam mekanisme ini, protein 'Cas9' bertindak sebagai...", o:["Lem pelekat (Ligase)","Enzim pemotong pita DNA (Nuklease / Gunting)","Penanda warna","Kromosom pembawa"], a:1, e:"Cas9 adalah enzim nuklease presisi yang memutus untai ganda DNA."},
+      {q:"Isu bioetika paling kontroversial terkait CRISPR pada manusia adalah...", o:["Mengobati kanker kulit","Penciptaan 'Designer Babies' (mengubah sifat fisik/kecerdasan embrio yang akan diwariskan permanen)","Pembuatan obat batuk","Modifikasi sayuran"], a:1, e:"Modifikasi sel germline (sperma/sel telur/embrio) merubah jalur evolusi genetik manusia."},
+      {q:"Molekul pemandu yang membawa Cas9 ke lokasi target pemotongan DNA yang tepat disebut...", o:["Enzim transfer","Guide RNA (gRNA)","Asam Amino","Glukosa"], a:1, e:"gRNA (RNA pemandu) bertindak seperti koordinat GPS menuju gen spesifik."},
+      {q:"Ilmuwan (di dunia nyata) yang meraih Nobel Kimia 2020 atas pengembangan alat CRISPR ini adalah...", o:["Watson & Crick","Emmanuelle Charpentier & Jennifer Doudna","Albert Einstein","Charles Darwin"], a:1, e:"Nobel dianugerahkan atas penemuan metode rekayasa genetika yang sangat tajam."},
+      {q:"Salah satu aplikasi CRISPR di bidang agrikultur modern adalah...", o:["Mempercepat traktor","Menciptakan varietas tanaman (GMO) yang tahan cuaca ekstrem dan hama tanpa pestisida asing","Mengeringkan tanah","Menjual benih palsu"], a:1, e:"Bisa mengubah gen intrinsik padi agar tahan banjir (contoh: gen Sub1)."},
+      {q:"Penyakit kelainan darah bawaan yang saat ini sudah memiliki terapi uji klinis berbasis CRISPR adalah...", o:["Flu biasa","Sickle Cell Anemia (Anemia Sel Sabit)","Patah tulang punggung","Rabun jauh"], a:1, e:"Mengedit sel induk sumsum tulang penderita agar memproduksi darah sehat."},
+      {q:"Apa yang dimaksud dengan terapi gen somatik (Somatic Editing)?", o:["Mengedit sel sperma","Mengedit sel non-reproduksi tubuh (pasien sembuh, tapi gen asli tetap menurun ke anak)","Kloning seluruh tubuh","Mengganti otak"], a:1, e:"Somatic editing lebih aman secara etika karena tidak memodifikasi keturunan."},
+      {q:"Risiko teknis utama CRISPR yang ditakuti ilmuwan disebut 'Off-target effects', artinya...", o:["Gunting tidak tajam","Enzim memotong di bagian DNA yang SALAH dan memicu mutasi/kanker","Sel target lari","Hanya berlaku semalam"], a:1, e:"Salah potong gen bisa mematikan gen penekan tumor alami tubuh."},
+      {q:"Dibandingkan dengan teknik rekayasa genetik dekade 90-an, CRISPR jauh lebih...", o:["Sulit dan langka","Cepat, murah, sangat presisi, dan mudah diakses lab kecil","Lambat dan berisiko mematikan lab","Hanya bisa pada tanaman"], a:1, e:"Efisiensi biayanya merevolusi biologi molekuler secara masif."},
+      {q:"Proyek ambisius 'De-extinction' menggunakan CRISPR bertujuan untuk...", o:["Menemukan dinosaurus","Menyelipkan gen hewan purba (misal Mammoth) ke dalam DNA kerabat modern (Gajah Asia)","Membakar fosil","Membongkar piramida"], a:1, e:"Bukan menghidupkan spesies asli 100%, melainkan menciptakan hybrid."},
+      {q:"Jika teknologi modifikasi genetik (Eugenika modern) dijual komersial tanpa regulasi ketat, bahaya terbesarnya adalah...", o:["Orang tidak mau beli","Kesenjangan sosial genetik (hanya orang kaya yang biologisnya superior/imun penyakit)","Bumi menjadi panas","Terlalu banyak oksigen"], a:1, e:"Akan tercipta jurang pemisah bilogis antara si kaya dan si miskin."},
+      {q:"Pada tahun 2018, seorang ilmuwan di Tiongkok memicu kecaman global karena menggunakan CRISPR untuk...", o:["Mengedit padi","Melahirkan bayi kembar (Lulu & Nana) yang diedit genetiknya agar kebal HIV","Mengobati anjing buta","Membuat obat flu"], a:1, e:"Dr. He Jiankui melanggar konsensus internasional tentang pengeditan embrio manusia."},
+      {q:"Pendekatan analitik saat mendiskusikan topik bioetika di forum ilmiah harus berlandaskan...", o:["Keyakinan dogma semata","Konspirasi film sci-fi","Analisis risiko empiris, jurnal klinis, dan framework filosofis-etika","Opini orang awam"], a:2, e:"Debat saintifik memerlukan sandaran data dan metodologi etika yang logis."}
+    ]
+  },
+  {
+    id:"ekonomi1", judul:"Psikologi Ekonomi: Dunning-Kruger Effect", kategori:"Ekonomi & Perilaku", ikon:"📉",
+    ringkas:"Mengapa orang amatir sering over-pede, dan para pakar justru ragu-ragu.",
+    teks:"Dunning-Kruger Effect adalah bias kognitif di mana individu dengan tingkat keahlian atau pengetahuan yang RENDAH di suatu bidang melebih-lebihkan kemampuannya. Hal ini terjadi karena mereka kekurangan kemampuan 'metakognisi' untuk menyadari kebodohan mereka. Sebaliknya, orang yang benar-benar ahli sering meremehkan kompetensi relatif mereka (Impostor Syndrome) karena mereka sadar betapa kompleksnya bidang tersebut.",
+    contoh:"Orang yang baru menonton dua video tutorial saham di YouTube merasa yakin bisa mengalahkan pasar, dan meremehkan peringatan dari investor kawakan.",
+    soal:[
+      {q:"Dunning-Kruger Effect merujuk pada ilusi kognitif di mana...", o:["Orang pintar merasa genius","Orang yang tidak kompeten sangat melebih-lebihkan kemampuannya (Overconfidence)","Orang kaya merendahkan orang miskin","Efek samping obat tidur"], a:1, e:"Kurangnya skill menyebabkan kurangnya kapasitas menilai skill tersebut."},
+      {q:"Grafik tingkat kepercayaan diri vs pengetahuan di fase awal sering memuncak tajam di titik yang disebut...", o:["Puncak Everest","Mount Stupid (Puncak Kebodohan)","Garis Datar","Jurang Kematian"], a:1, e:"Mount Stupid adalah titik kepercayaan diri tertinggi yang dirasakan seorang pemula."},
+      {q:"Penyebab utama orang yang kurang ahli bisa merasa sangat hebat adalah karena mereka kekurangan...", o:["Uang","Gizi otak","Metakognisi (Kemampuan berpikir tentang cara berpikirnya sendiri)","Koneksi internet"], a:2, e:"Tanpa metakognisi, mereka memiliki 'blind spot' terhadap kekurangan mereka."},
+      {q:"Ketika seorang pakar sungguhan justru merasa ilmunya kurang dan menganggap dirinya penipu, fenomena ini disebut...", o:["Placebo Effect","Impostor Syndrome (Sindrom Penipu)","Bystander Effect","Mandela Effect"], a:1, e:"Pakar menyadari luasnya lautan ilmu, sehingga merasa ilmu mereka baru sebatas tetesan air."},
+      {q:"Dalam kurva pembelajaran Dunning-Kruger, setelah seseorang menyadari kompleksitas ilmu sesungguhnya, kepercayaannya akan jatuh ke dalam...", o:["Surga Pengetahuan","Valley of Despair (Lembah Keputusasaan)","Dataran Tinggi","Gunung Berapi"], a:1, e:"Momen realisasi bahwa bidang tersebut jauh lebih sulit dari perkiraan awal."},
+      {q:"Dalam dunia pasar modal/trading, bias ini paling sering menyebabkan...", o:["Keuntungan instan miliaran","Pengambilan risiko investasi yang sembrono (reckless trading) dan kehancuran modal","Sikap sabar","Peningkatan deviden"], a:1, e:"Trader amatir all-in karena merasa sudah 'membaca pergerakan bandar'."},
+      {q:"Tingkah laku khas yang sangat dibenci dalam forum intelektual akibat efek ini adalah...", o:["Bertanya dengan sopan","Debat kusir modal sok tahu tanpa referensi literatur valid","Membagikan jurnal internasional","Berdiskusi damai"], a:1, e:"Debat sok tahu seringkali berasal dari orang yang berada di Mount Stupid."},
+      {q:"Kata mutiara Sokrates yang sering dianggap sebagai antitesis dari efek Dunning-Kruger adalah...", o:["Saya tahu segalanya","Bumi itu datar","Satu-satunya kebijaksanaan sejati adalah mengetahui bahwa saya tidak tahu apa-apa","Hukum adalah hukum"], a:2, e:"Pengakuan atas batas pengetahuan adalah syarat mutlak memulai pembelajaran ilmiah."},
+      {q:"Cara paling efektif untuk 'mengobati' seseorang dari bias Dunning-Kruger adalah...", o:["Mendiamkannya","Memarahinya","Meningkatkan literasi/pendidikan mereka di bidang tersebut hingga menyadari kompleksitasnya","Memberinya jabatan"], a:2, e:"Edukasi akan menghancurkan ilusi kesederhanaan ilmu tersebut."},
+      {q:"Di lingkungan perusahaan/kerja kelompok, individu dengan bias ini sering kali...", o:["Sangat proaktif memandu","Gagal menyadari bahwa mereka adalah beban bagi rekan satu timnya","Selalu datang paling pagi","Menerima kritik dengan lapang dada"], a:1, e:"Karena metakognisinya tumpul, mereka selalu merasa kerjanya paling bagus."},
+      {q:"Istilah modern untuk orang awam yang merasa lebih paham diagnosis medis daripada dokter profesional sering disebut...", o:["Apoteker andal","Dr. Google (mengandalkan artikel 5 menit di internet)","Perawat spesialis","Tabib magis"], a:1, e:"Akses instan informasi permukaan memicu overconfidence medis."},
+      {q:"Apakah efek Dunning-Kruger hanya menyerang orang dengan IQ rendah?", o:["Ya, hanya orang bodoh mutlak","Tidak, fenomena ini universal saat siapa pun mempelajari bidang yang sama sekali baru baginya","Hanya pejabat","Hanya anak sekolah"], a:1, e:"Bahkan ilmuwan jenius di satu bidang bisa kena bias ini jika bicara di bidang lain yang tak dikuasainya."},
+      {q:"Filsuf Bertrand Russell mendeskripsikan fenomena ini dengan *quote*: 'Masalah dunia ini adalah orang bodoh terlalu...'", o:["Sering tidur","Pasti/Yakin (Certain), sementara orang berakal penuh keraguan","Banyak bicara politik","Suka uang"], a:1, e:"Kutipan legendaris yang merangkum keseluruhan Dunning-Kruger Effect secara puitis."},
+      {q:"Bagaimana sikap seorang intelektual empiris tulen saat dihadapkan pada fakta yang membantah asumsinya?", o:["Marah besar","Meninggalkan forum","Siap merevisi hipotesis pribadinya berdasarkan pembaruan data empiris","Melakukan serangan personal (Ad Hominem)"], a:2, e:"Fleksibilitas berbasis data (Bayesian updating) adalah ciri kedewasaan intelektual."},
+      {q:"Apa fungsi dari sistem Peer-Review (Tinjauan Sejawat) dalam jurnal sains berkaitan dengan bias ini?", o:["Mencari siapa yang lebih tua","Menyaring karya dari klaim overconfidence dan metodologi cacat melalui verifikasi pakar buta","Membuat penerbitan mahal","Mempersulit mahasiswa"], a:1, e:"Peer-review adalah mekanisme imun sains terhadap klaim sembrono."}
+    ]
+  },
+  {
+    id:"fisika1", judul:"Mekanika Kuantum Dasar", kategori:"Fisika", ikon:"🌌",
+    ringkas:"Realitas membengkok di skala sub-atomik; probabilitas menggantikan kepastian.",
+    teks:"Mekanika Kuantum adalah fisika dunia mikro (elektron, foton). Di level ini, determinisme hukum Newton hancur lebur. Sebuah partikel bisa eksis di dua keadaan (atau tempat) secara bersamaan (Superposisi), sebelum ia diukur atau diamati oleh detektor eksternal (Runtuhnya Fungsi Gelombang). Partikel juga bisa 'terikat' jarak jauh secara instan lintas galaksi (Keterikatan Kuantum). Fisika kuantum membuktikan alam semesta bekerja berlandaskan probabilitas fundamental, bukan jarum jam yang pasti.",
+    contoh:"Dalam Komputasi Kuantum, satuan 'Qubit' bisa bernilai 0 dan 1 secara *bersamaan*, memungkinkan penyelesaian perhitungan algoritma paralel jutaan kali lebih cepat daripada komputer biner biasa.",
+    soal:[
+      {q:"Mekanika Kuantum difokuskan pada studi perilaku materi di tingkat...", o:["Galaksi raksasa","Kecepatan cahaya makro","Sangat kecil (Skala Atomik / Subatomik)","Cairan kental"], a:2, e:"Berlaku di ukuran nanometer dan partikel elementer."},
+      {q:"Prinsip di mana sebuah partikel berada dalam berbagai kemungkinan keadaan secara bersamaan (kombinasi linier) disebut...", o:["Gravitasi Kuantum","Superposisi","Superkonduktivitas","Entropi"], a:1, e:"Superposisi memungkinkan partikel seperti elektron tidak memiliki posisi pasti sebelum diamati."},
+      {q:"Fenomena 'Keterikatan Kuantum' (Quantum Entanglement) berarti bahwa dua partikel yang terhubung...", o:["Akan saling tolak-menolak","Bisa berkomunikasi instan mengkoordinasikan *state* mereka meski dipisahkan miliaran tahun cahaya","Hancur menjadi antimateri","Akan meledak"], a:1, e:"Einstein dengan frustrasi menyebut ini 'Spooky action at a distance'."},
+      {q:"Satuan informasi dasar dalam sistem komputer Kuantum disebut...", o:["Bit","Megabyte","Qubit (Quantum Bit)","Pixel"], a:2, e:"Qubit beroperasi dalam state 0, 1, atau superposisi keduanya."},
+      {q:"Eksperimen klasik Celah Ganda (Double Slit Experiment) mendemonstrasikan bahwa cahaya dan elektron memiliki sifat...", o:["Partikel padat saja","Gelombang statis saja","Dualitas Partikel sekaligus Gelombang (Wave-Particle Duality)","Hanya radiasi radio"], a:2, e:"Partikel menunjukkan pola interferensi gelombang jika tidak dipantau secara spesifik."},
+      {q:"Apa yang terjadi pada superposisi elektron menurut Interpretasi Kopenhagen saat partikel tersebut 'DIUKUR' atau 'DIAMATI'?", o:["Ukurannya membesar","Fungsi probabilitas gelombangnya runtuh (Collapse) menjadi keadaan fisik tunggal/pasti","Meledak jadi quark","Berubah warna"], a:1, e:"Efek Pengamat (Observer Effect) memaksa partikel 'memilih' posisi pasti."},
+      {q:"Fisikawan Austria yang merumuskan persamaan diferensial untuk menghitung probabilitas fungsi gelombang ini adalah...", o:["Isaac Newton","Erwin Schrödinger","Galileo Galilei","Thomas Edison"], a:1, e:"Persamaan Schrödinger adalah tulang punggung matematis mekanika kuantum."},
+      {q:"Eksperimen pikiran Kucing Schrödinger awalnya dibuat untuk menyindir bahwa...", o:["Kucing bisa bernapas tanpa oksigen","Absurd dan konyolnya mengaplikasikan aturan superposisi mikro ke benda makro yang terlihat mata","Kucing membenci radiasi","Fisika itu mudah"], a:1, e:"Menggambarkan konyolnya jika seekor kucing benar-benar berada di state 'hidup-dan-mati' sekaligus."},
+      {q:"Interpretasi 'Banyak Dunia' (Many-Worlds Interpretation) dari Hugh Everett menyatakan bahwa...", o:["Bumi memiliki kembaran di tata surya lain","Setiap kali ada keputusan acak kuantum, alam semesta bercabang menciptakan realitas paralel","Alien ada di mana-mana","Dunia ini hanyalah simulasi komputer"], a:1, e:"Semua probabilitas kuantum sungguhan terjadi, namun di *timeline* semesta yang bercabang."},
+      {q:"Apakah mekanika kuantum hanya teori abstrak tanpa kegunaan di dunia nyata?", o:["Ya, sepenuhnya teori di atas kertas","Tidak, semikonduktor, transistor HP, Laser, dan pemindai MRI bertumpu penuh pada efek mekanika kuantum","Hanya berguna untuk membikin roket air","Cuma bahan fiksi ilmiah"], a:1, e:"Hampir seluruh teknologi informasi modern mustahil ada tanpa kalkulasi kuantum."},
+      {q:"Kutipan legendaris 'Tuhan tidak bermain dadu dengan semesta', yang menunjukkan penolakan mendalam atas probabilitas acak kuantum, diucapkan oleh...", o:["Stephen Hawking","Niels Bohr","Albert Einstein","Richard Feynman"], a:2, e:"Einstein tidak nyaman dengan kenyataan bahwa probabilitas kebetulan (randomness) tertanam dalam struktur dasar realitas."},
+      {q:"Sifat fisika yang berpotensi dimanfaatkan oleh Komputer Kuantum masa depan untuk menjebol sistem enkripsi perbankan dunia secara instan adalah algoritma...", o:["Algoritma Pythagoras","Algoritma Shor (Faktorisasi bilangan prima skala masif)","Algoritma YouTube","Algoritma Dijkstra"], a:1, e:"Algoritma Shor mengeksploitasi superposisi untuk memfaktorkan kunci kriptografi eksponensial."},
+      {q:"Dalam terminologi 'Kuantum', kata *Quantum* (dari bahasa Latin) sendiri merujuk pada energi fisik yang disalurkan secara...", o:["Gelombang berkelanjutan tanpa putus","Paket-paket diskrit (potongan-potongan energi dengan nilai diskrit spesifik)","Gas padat","Cairan superkritis"], a:1, e:"Radiasi termal / elektron meloncat (leap) secara spesifik (diskrit), bukan halus berkelanjutan."},
+      {q:"Fisikawan ikonik Amerika yang terkenal dengan gaya eksentriknya dan menciptakan diagram sederhana (Diagram Feynman) untuk interaksi partikel adalah...", o:["Linus Pauling","J. Robert Oppenheimer","Richard Feynman","Carl Sagan"], a:2, e:"Diagram Feynman menyederhanakan perhitungan matematis kompleks elektrodinamika kuantum."},
+      {q:"Efek aneh di mana elektron bisa menembus pembatas solid yang secara energi klasiknya mustahil dilewati (mirip teleportasi tembus tembok) disebut...", o:["Gravitasi terbalik","Quantum Tunneling (Terowongan Kuantum)","Tarik-tambang kosmik","Resonansi Magnetik"], a:1, e:"Efek ini memungkinkan fusi nuklir di Matahari terjadi, dan menjadi prinsip kerja memori Flash (USB drive)."}
+    ]
+  },
+  {
+    id:"astronomi1", judul:"Astronomi: Lubang Hitam (Black Hole)", kategori:"Fisika/Astronomi", ikon:"🪐",
+    ringkas:"Pemakan segala kosmik yang memiliki kepadatan tak terhingga.",
+    teks:"Lubang Hitam terbentuk dari sisa inti bintang super-masif yang kolaps (runtuh ke dalam) saat kehabisan bahan bakar nuklir. Kepadatannya menembus ketakterhinggaan di satu titik (Singularitas). Medan gravitasinya sangat luar biasa ekstrem sehingga merobek tatanan kelengkungan ruang dan waktu. Batas terluar tarikan gravitasi ini disebut 'Event Horizon'. Cahaya—entitas tercepat di semesta—pun tidak bisa kabur jika melewati batas tersebut.",
+    contoh:"Jika Anda mendekati Black Hole, gravitasi ekstrem akan membengkokkan dimensi waktu (Time Dilation). Satu menit bagi Anda di sana bisa setara dengan puluhan tahun yang berlalu di Bumi.",
+    soal:[
+      {q:"Batas pinggir / zona tak bisa kembali (point of no return) pada Black Hole disebut...", o:["Garis Khatulistiwa Kosmik","Inti Singularitas","Wormhole Entry","Cakrawala Peristiwa (Event Horizon)"], a:3, e:"Setelah melewati Event Horizon, kecepatan pelarian (escape velocity) melebihi kecepatan cahaya."},
+      {q:"Pusat dari sebuah Black Hole di mana semua massanya terkompresi hingga volume nol dan hukum fisika kita gagal berfungsi disebut...", o:["Singularitas","Bintang Neutron","Pusat Fusi","Quasar"], a:0, e:"Singularity memiliki densitas infinit (tak terhingga)."},
+      {q:"Sebuah 'Stellar Black Hole' lahir dari peristiwa kataklismik kosmik berupa...", o:["Tabrakan asteroid biner","Kematian bintang masif dalam ledakan dahsyat (Supernova) yang inti pusatnya runtuh","Bulan yang meledak","Penumpukan awan debu Oort"], a:1, e:"Supernova menghamburkan material luar, sementara intinya terus kolaps di bawah gravitasinya sendiri."},
+      {q:"Jika seorang astronot jatuh kaki duluan ke arah Black Hole skala kecil, gradien gravitasi ekstrem akan memelarkan tubuhnya menjadi panjang seperti spageti. Fenomena ini disebut...", o:["Ekspansi Elastis","Spaghettification (Spagetifikasi)","Radiasi Hawking","Efek Redshift"], a:1, e:"Tarikan di ujung kaki jauh lebih besar dari tarikan di kepala, merobek objek pada level atomik."},
+      {q:"Apakah Matahari di tata surya kita pada akhirnya akan meledak menjadi Black Hole?", o:["Ya, dijamin dalam 5 miliar tahun","Tidak, massanya kurang besar; ia akan mati menjadi White Dwarf (Katai Putih)","Ya, sebentar lagi","Hanya setengah dari intinya yang jadi Black Hole"], a:1, e:"Bintang harus setidaknya 3-4 kali lebih berat dari matahari kita (Batas Tolman-Oppenheimer-Volkoff) untuk bisa menjadi Black Hole."},
+      {q:"Pondasi teori yang berhasil memprediksi secara akurat keberadaan objek pelengkung ruang-waktu seperti Black Hole adalah...", o:["Hukum Gravitasi Universal Newton","Teori Relativitas Umum (Albert Einstein)","Hukum Mekanika Kuantum","Teori Termodinamika"], a:1, e:"Persamaan medan Einstein mendeskripsikan gravitasi sebagai distorsi geometri 'kain' ruang-waktu (Space-Time)."},
+      {q:"Black Hole raksasa yang berada persis di pusat Galaksi Bima Sakti (Milky Way) tempat kita bernaung dinamai...", o:["Andromeda Alpha","Sagittarius A* (Sgr A*)","Sirius Supermasif","Pleiades Prime"], a:1, e:"Sgr A* adalah Supermassive Black Hole bermassa jutaan kali Matahari kita."},
+      {q:"Karena Black Hole sendiri murni gelap, bagaimana para astronom bisa 'melihat' dan membuktikan keberadaannya di langit malam?", o:["Memakai senter kuantum raksasa","Mengamati radiasi piringan gas super-panas (Accretion Disk) dan efek gravitasinya terhadap bintang sekitar","Menghitung jumlah bintang yang hilang secara manual","Menunggunya bersinar siang hari"], a:1, e:"Material gas yang tersedot ke dalam mengorbit dengan kecepatan fraksi cahaya, memanas karena gesekan, lalu memancarkan sinar-X hebat."},
+      {q:"Jaringan teleskop radio global bumi yang bersejarah mencetak foto sejati pertama dari siluet Black Hole (M87) pada tahun 2019 adalah...", o:["Teleskop Luar Angkasa Hubble","Event Horizon Telescope (EHT)","James Webb Space Telescope (JWST)","Observatorium Arecibo"], a:1, e:"EHT menggabungkan data dari berbagai piringan radio di bumi (Interferometri) untuk menciptakan teleskop virtual seukuran bumi."},
+      {q:"Efek Dilatasi Waktu Relativistik ekstrem berarti jika Anda diam mengamati Black Hole dari jarak sangat dekat, teman Anda di Bumi akan mengamati Anda...", o:["Menua dengan sangat cepat menjadi debu","Bergerak semakin melambat layaknya *slow-motion*, membeku (freeze), dan memerah","Tiba-tiba meledak","Berubah transparan"], a:1, e:"Gravitasi luar biasa menahan laju waktu dari perspektif pengamat di medan gravitasi lemah (Bumi)."},
+      {q:"Konsep jembatan hipotesis matematis yang menghubungkan Black Hole dan White Hole sebagai jalan pintas ruang-waktu menembus dimensi semesta disebut...", o:["Singularitas Telanjang","Lubang Cacing (Wormhole / Jembatan Einstein-Rosen)","Jalan Tol Kuantum","Cincin Dyson"], a:1, e:"Secara teoritis dimungkinkan matematika relativitas, walau butuh materi eksotis (energi negatif) agar tidak kolaps."},
+      {q:"Teori bahwa Black Hole sebenarnya memancarkan radiasi termal sangat lambat dan pada suatu hari nanti di ujung usia semesta akan 'menguap' sepenuhnya lenyap dicetuskan oleh...", o:["Albert Einstein","Stephen Hawking (Radiasi Hawking)","Carl Sagan","Neil deGrasse Tyson"], a:1, e:"Hawking menggabungkan mekanika kuantum partikel virtual di bibir event horizon dengan relativitas umum."},
+      {q:"Riak pada tenunan ruang-waktu yang tercipta akibat tabrakan brutal dua Black Hole miliaran tahun cahaya dari bumi, dideteksi instrumen LIGO sebagai...", o:["Ledakan suara supersonik di udara","Gelombang Gravitasi (Gravitational Waves)","Hujan meteor raksasa","Semburan radiasi Alfa"], a:1, e:"Gelombang gravitasi secara harfiah meremas dan meregangkan struktur dimensi planet kita sejauh fraksi ukuran proton."},
+      {q:"Kelas Black Hole purba misterius dan paling ekstrem, yang berada di jantung miliaran galaksi dan berfungsi bak mesin quasar raksasa disebut kelas...", o:["Micro Black Hole","Supermassive Black Hole","Intermediate Black Hole","Bintang Gelap Primordial"], a:1, e:"Bobotnya jutaan hingga miliaran massa matahari (Solar Mass)."},
+      {q:"Dalam diskursus logika, mendebat sains murni tanpa menyertakan referensi observasi matematis maupun empirik akan berujung pada...", o:["Kebenaran mutlak","Lubang hitam kesesatan tak berdasar (Logika Fallacy)","Filsafat tingkat tinggi","Kebahagiaan hakiki"], a:1, e:"Sains mutlak bertumpu pada hukum probabilitas statistik atau verifikasi empiris; sisanya sekadar asumsi."}
+    ]
+  },
+  {
+    id:"biologi2", judul:"Evolusi: Mekanisme Seleksi Alam", kategori:"Biologi", ikon:"🦖",
+    ringkas:"Adaptasi yang menguntungkan akan diwariskan; yang tidak, akan punah.",
+    teks:"Teori Evolusi melalui Seleksi Alam yang digagas Charles Darwin menjelaskan bagaimana keanekaragaman hayati terbentuk tanpa desain dari atas. Konsepnya sederhana: Dalam setiap populasi, terdapat variasi genetik acak. Organisme dengan ciri variasi yang paling cocok (fit) dengan lingkungan sekitarnya memiliki peluang bertahan hidup dan bereproduksi lebih besar. Gen mereka diwariskan, sementara variasi yang tidak menguntungkan tersingkir.",
+    contoh:"Ngengat di Inggris yang aslinya berwarna putih berubah mayoritas jadi hitam saat Revolusi Industri, karena ngengat hitam lebih tersamar di batang pohon tertutup jelaga, menghindari predator burung.",
+    soal:[
+      {q:"Siapa ilmuwan Inggris abad 19 yang paling terkenal dengan publikasi teori Evolusi lewat buku 'On the Origin of Species'?", o:["Gregor Mendel","Louis Pasteur","Charles Darwin","Alexander Fleming"], a:2, e:"Darwin mempublikasikannya tahun 1859 setelah ekspedisinya di kapal HMS Beagle."},
+      {q:"Mekanisme utama di balik teori evolusi, yang sering dirangkum dalam frasa 'Survival of the Fittest', disebut...", o:["Seleksi Buatan","Mutasi Terarah","Seleksi Alam (Natural Selection)","Kloning Otomatis"], a:2, e:"Lingkungan menyeleksi varian gen yang paling menguntungkan untuk bertahan."},
+      {q:"Bahan baku (raw material) utama yang memungkinkan seleksi alam bekerja membedakan antar individu dalam satu populasi adalah...", o:["Suhu udara","Mutasi genetik acak (Variasi)","Bentuk awan","Keinginan hewan itu sendiri"], a:1, e:"Tanpa variasi genetik akibat mutasi/rekombinasi, evolusi tidak bisa terjadi."},
+      {q:"Arti kata 'Fit' dalam frasa *Survival of the Fittest* biologi evolusioner sebenarnya bermakna...", o:["Organisme yang berotot paling besar dan kuat","Organisme dengan kemampuan adaptasi lingkungan & keberhasilan reproduksi terbaik","Spesies yang paling ganas","Hewan yang larinya paling cepat"], a:1, e:"'Fit' merujuk pada *Reproductive Fitness*, kemampuan meneruskan gen."},
+      {q:"Proses di mana manusia secara sengaja mengawinkan anjing jenis tertentu untuk mendapatkan keturunan ras yang diinginkan disebut...", o:["Seleksi Alam","Seleksi Seksual","Seleksi Buatan (Artificial Selection)","Mutasi Buatan"], a:2, e:"Manusia yang menjadi 'agen penyeleksi', bukan alam bebas."},
+      {q:"Penemuan di bidang genetika oleh bapak genetika modern yang nantinya membenarkan dan memperkuat hipotesis evolusi Darwin dilakukan oleh...", o:["Albert Einstein","Gregor Mendel (Hukum Pewarisan Sifat)","Robert Hooke","Carl Linnaeus"], a:1, e:"Mendel menemukan dasar pewarisan alel gen (kacang ercis), mengisi kekosongan teori pewarisan Darwin."},
+      {q:"Organ pada manusia seperti usus buntu (appendix) atau tulang ekor yang fungsinya telah menyusut drastis sepanjang sejarah evolusi disebut organ...", o:["Vestigial","Regeneratif","Fosil hidup","Super-organ"], a:0, e:"Sisa-sisa anatomi dari leluhur evolusioner yang sudah tidak esensial lagi."},
+      {q:"Dua spesies berbeda yang berevolusi secara terpisah namun mengembangkan bentuk sayap yang mirip (misal: kelelawar dan burung) merupakan fenomena...", o:["Evolusi Divergen","Evolusi Konvergen","Kepunahan Massal","Radiasi Adaptif"], a:1, e:"Menghadapi masalah lingkungan yang sama (butuh terbang) memicu solusi desain alam yang analog/mirip."},
+      {q:"Kepulauan terisolasi yang menginspirasi Darwin karena burung Finch-nya memiliki paruh yang berbeda-beda sesuai jenis makanan di pulau tersebut adalah kepulauan...", o:["Hawaii","Galapagos","Maladewa","Bermuda"], a:1, e:"Isolasi geografis di Galapagos mempercepat spesiasi secara lokal."},
+      {q:"Miskonsepsi awam yang paling umum dan keliru mengenai evolusi manusia adalah pernyataan...", o:["Manusia berevolusi selama jutaan tahun","'Manusia berasal/berevolusi langsung dari Kera modern (Simpanse)'","Manusia punya DNA sama dengan hewan","Otak manusia membesar karena berevolusi"], a:1, e:"Kenyataannya, manusia BUKAN keturunan kera modern; kita dan kera modern memiliki (berbagi) leluhur moyang yang sama (Common Ancestor) yang kini telah punah."},
+      {q:"Fenomena di mana burung Merak jantan berevolusi memiliki ekor yang berat, terang, dan tidak efisien untuk terbang semata-mata demi menarik perhatian betina disebut...", o:["Seleksi Alam ekstrim","Seleksi Seksual (Sexual Selection)","Mutasi mematikan","Penipuan biologi"], a:1, e:"Sifat dievolusikan demi keberhasilan kawin, meski merugikan ketahanan bertahan hidup individu."},
+      {q:"Bukti empiris terkuat adanya garis waktu evolusi jutaan tahun di masa lalu yang terkubur dalam strata geologi bumi adalah...", o:["Legenda turun-temurun","Catatan fosil kuno (Fossil Record)","Bentuk batu sungai","Gambar di gua"], a:1, e:"Fosil organisme transisi merekam perubahan morfologi spesies lintas zaman geologi."},
+      {q:"Proses di mana satu populasi purba terpisah menjadi dua oleh gunung atau laut, sehingga keduanya tidak bisa kawin dan akhirnya berevolusi jadi spesies terpisah disebut...", o:["Spesiasi Alopatrik","Spesiasi Simpatrik","Punah otomatis","Kloning massal"], a:0, e:"Alopatrik = spesiasi karena hambatan geografis absolut."},
+      {q:"Revolusi modern yang menggabungkan prinsip genetika DNA populasi dengan teori seleksi alam Darwinian dikenal di sains akademis sebagai...", o:["Revolusi Biokimia","Modern Synthesis (Sintesis Evolusioner Modern)","Neo-Klasik","Teori Penciptaan"], a:1, e:"Kerangka kerja biologi abad 20 yang memadukan Darwin, Mendel, dan Watson-Crick."},
+      {q:"Bagaimana seharusnya sikap saintifik anggota grup intelektual merespons klaim anti-evolusi tanpa dasar genetika?", o:["Menerimanya sebagai teori tandingan setara","Menuntut pembuktian jurnal berbasis *peer-review* genetik & jejak molekuler DNA","Mengejek secara personal (Ad Hominem)","Menyerah berargumen"], a:1, e:"Sains biologis harus dijawab dengan argumen empirik molekuler mikrobiologi, bukan asumsi hampa."}
+    ]
+  },
+  {
+    id:"logika1", judul:"Filsafat & Logika: Kesesatan Berpikir (Fallacy)", kategori:"Logika Dasar", ikon:"⚖️",
+    ringkas:"Membedah anatomi argumen cacat dan tipuan retorika dalam perdebatan.",
+    teks:"Logika adalah cabang filsafat yang menelaah validitas inferensi atau penarikan kesimpulan. Dalam debat, sering muncul 'Logical Fallacy' (Kesesatan Berpikir): kesalahan struktur penarikan kesimpulan yang membuat suatu argumen menjadi tidak valid, meskipun terdengar meyakinkan bagi orang awam. Mengetahui ragam kesesatan ini adalah perlindungan utama dari propaganda politisi, *hoax* sosial media, dan pembodohan masal.",
+    contoh:"Seseorang mengatakan, 'Teori gravitasi itu salah karena ilmuwan X ketahuan selingkuh.' (Ini cacat Ad Hominem: menyerang karakter pribadi pembicara, yang sama sekali tak ada hubungannya dengan kebenaran konsep fisika argumennya).",
+    soal:[
+      {q:"Menyerang kepribadian, ras, atau karakter lawan debat alih-alih membantah isi argumennya disebut kesesatan...", o:["Strawman Fallacy","Ad Hominem","Slippery Slope","Bandwagon Fallacy"], a:1, e:"Ad Hominem (To the Man) mengalihkan argumen dari logika ke serangan personal."},
+      {q:"Membangun ulang argumen lawan menjadi versi yang distorsi, lebih lemah, atau dilebih-lebihkan lalu menyerang versi palsu tersebut, disebut cacat logika...", o:["Ad Populum","Strawman (Orang-orangan Sawah)","Red Herring","False Dilemma"], a:1, e:"Seolah-olah memukul KO lawan, padahal yang dipukul hanya tiruan argumen lawan (Strawman)."},
+      {q:"'RUU ini pasti bagus karena jutaan warga mendukungnya!' Ini merupakan cacat pikiran dengan berlindung pada popularitas yang disebut...", o:["Bandwagon Effect / Ad Populum","Appeal to Emotion","Ad Hominem","Circular Reasoning"], a:0, e:"Kebenaran absolut tidak bergantung pada suara voting mayoritas orang awam (Kebenaran bukan demokrasi)."},
+      {q:"Kesesatan logika 'False Dilemma' (Dikotomi Palsu) terjadi apabila debater...", o:["Berbohong terang-terangan","Memberikan hanya DUA pilihan ekstrem seolah itu satu-satunya opsi (misal: 'Kau dukung kami atau kau musuh kami!')","Banyak diam","Minta maaf"], a:1, e:"Menyembunyikan fakta bahwa ada nuansa atau pilihan ketiga, keempat, dst."},
+      {q:"'Kita selalu melakukan hal ini selama ratusan tahun, berarti tradisi ini adalah tindakan paling benar.' Ini adalah contoh kesesatan...", o:["Appeal to Tradition (Ad Antiquitatem)","Appeal to Authority","Strawman","Confirmation Bias"], a:0, e:"Sebuah sistem yang dilakukan lama belum tentu yang paling benar, relevan, atau beretika secara modern."},
+      {q:"Mengubah topik obrolan secara mendadak dengan fakta yang tidak relevan di tengah perdebatan untuk mengecoh pihak lawan disebut taktik...", o:["Black or White","Red Herring (Ikan Haring Merah)","Texas Sharpshooter","Gambler's Fallacy"], a:1, e:"Melemparkan 'ikan busuk' agar anjing pelacak tersesat dari jejak argumen utama."},
+      {q:"'Jika kita izinkan anak main HP 1 jam sekarang, besok dia mau 3 jam, bulan depan dia putus sekolah dan jadi perampok!' Ini adalah jenis kesesatan lompatan berlebihan yang disebut...", o:["Ad Hominem","Tu Quoque","Slippery Slope (Lereng Licin)","Genetic Fallacy"], a:2, e:"Asumsi bahwa langkah kecil A akan pasti memicu reaksi berantai domino ekstrem Z tanpa bukti perantara."},
+      {q:"Beban pembuktian (Burden of Proof) dalam hukum logika ilmiah secara default selalu berada di pundak...", o:["Orang yang mendengar klaim","Pihak yang pertama KALI mengajukan KLAIM (terutama klaim luar biasa)","Wasit debat","Pihak yang menolak klaim"], a:1, e:"'Extraordinary claims require extraordinary evidence.' (Klaim luar biasa butuh bukti luar biasa). Yang membuat klaim wajib membuktikan."},
+      {q:"'Kamu bilang merokok itu haram dan merusak paru, padahal kamu sendiri juga merokok tiap hari! Jadi argumen paru rusakmu salah!' Balasan ini tergolong cacat logika...", o:["Post Hoc","Tu Quoque (Kau juga) / Appeal to Hypocrisy","Red Herring","Halo Effect"], a:1, e:"Kemunafikan pembicara TIDAK membatalkan fakta ilmiah dari isi ucapannya (merokok tetap merusak paru)."},
+      {q:"Kesesatan menyimpulkan hubungan kausalitas (Sebab-Akibat) semata-mata karena dua kejadian terjadi secara berurutan waktu (misal: 'Ayam berkokok, lalu matahari terbit, jadi ayam penyebab terbit') dinamakan...", o:["Post Hoc Ergo Propter Hoc","Ad Hominem","Strawman","False Equivalence"], a:0, e:"Korelasi urutan waktu atau kejadian bersamaan TIDAK SAMA DENGAN Kausalitas (Korelasi bukan Kausalitas)."},
+      {q:"Mengasumsikan kesimpulan argumen di dalam premis itu sendiri (misal: 'Buku ini pasti benar karena buku ini mengatakan dirinya berisi kebenaran mutlak') dinamakan kelumpuhan rasio...", o:["Slippery Slope","Circular Reasoning (Penalaran Melingkar) / Begging the Question","Ad Populum","Texas Sharpshooter"], a:1, e:"Struktur berputar pada dirinya sendiri tanpa bukti dukungan eksternal sedikit pun."},
+      {q:"Mencocok-cocokkan data agar sesuai hipotesis sendiri setelah semuanya terjadi, lalu mengabaikan data berlawanan (seperti menembak dinding acak lalu melukis target di lubang peluru yang rapat), dikenal dengan bias...", o:["Confirmation Fallacy","Texas Sharpshooter Fallacy","Bystander Effect","Bandwagon"], a:1, e:"Mencari pola dan kesamaan pada hal-hal acak demi membenarkan dugaan apriori."},
+      {q:"Klaim kebenaran berbasis pada ketidaktahuan: 'Karena sains belum bisa menjelaskan fenomena lampu berkedip itu 100%, maka itu PASTI ulah hantu alien.' Kesesatan ini dinamakan...", o:["Appeal to Ignorance (Argumentum ad Ignorantiam)","Appeal to Fear","False Cause","Ad Populum"], a:0, e:"Kekosongan data/Sains yang belum tahu (Ignorance) tidak bisa dijadikan bukti pembenaran teori gaib Anda."},
+      {q:"Sebuah debat dianggap sebagai dialektika yang elegan oleh grup intelektual apabila kedua belah pihak menerapkan...", o:["Prinsip Amal (Principle of Charity) dengan menginterpretasikan argumen lawan di titik terkuatnya sebelum merespon","Gaya merendahkan secara konstan","Suara berteriak lebih keras","Blokir akun lawan"], a:0, e:"Lawan dari *Strawman*; membantah versi terbaik/terkuat dari argumen pihak lawan menunjukkan intelektualitas kelas atas."},
+      {q:"Kenapa penting mempelajari peta *Logical Fallacies* dalam dunia pasca-kebenaran modern?", o:["Biar terlihat sombong","Untuk menjadi kebal dari manipulasi kognitif politikus, *scammer*, pseudo-saintis, dan provokator kultus di era informasi banal","Agar bisa membully","Tidak ada gunanya sama sekali"], a:1, e:"Berpikir kritis murni adalah pertahanan sipil (self-defense) yang paling utama bagi akal manusia."}
+    ]
+  },
+  {
+    id:"kripto1", judul:"Matematika Kriptografi", kategori:"Tech/Matematika", ikon:"🔐",
+    ringkas:"Seni menyandikan rahasia dari Julius Caesar hingga Keamanan Internet Global.",
+    teks:"Kriptografi adalah ilmu matematika yang berfokus pada pengamanan informasi/komunikasi. Sejarah mencatat 'Caesar Cipher', sandi substitusi geser abjad sederhana warisan Kekaisaran Romawi Kuno. Kini di era digital, sistem keamanan pesan menggunakan sistem kriptografi Kunci Asimetris (Public-Key Cryptography) super canggih seperti Algoritma RSA. Keamanan ini bukan dilindungi kata sandi saja, tapi oleh faktorisasi bilangan prima masif beratus digit yang secara matematis butuh jutaan tahun untuk diretas oleh komputer biner konvensional saat ini.",
+    contoh:"Ketika Anda membuka website perbankan berlogo gembok (HTTPS/SSL), komputer Anda dan server bertukar 'Kunci Publik' agar *hacker* di tengah jaringan Wi-Fi cafe hanya bisa melihat rentetan angka/huruf acak (Ciphertext).",
+    soal:[
+      {q:"Tujuan utama algoritma ilmu kriptografi adalah...", o:["Membuat virus","Mengonversi informasi mudah baca (Plaintext) menjadi data acak rahasia (Ciphertext) agar aman","Menghapus data orang lain","Meningkatkan resolusi video"], a:1, e:"Menjaga aspek kerahasiaan komunikasi (Confidentiality)."},
+      {q:"Sandi kuno substitusi abjad peninggalan kaisar Romawi yang digeser sejumlah huruf (misal A menjadi D, B menjadi E) disebut...", o:["Enigma Code","Caesar Cipher (Sandi Caesar)","RSA Algorithm","Vigenère Cipher"], a:1, e:"Teknik dasar penggeseran karakter sejauh nilai tertentu (Key)."},
+      {q:"Proses mengembalikan teks yang disandikan (Ciphertext) agar bisa dibaca kembali manusia (Plaintext) menggunakan kunci yang tepat disebut...", o:["Enkripsi (Encryption)","Dekripsi (Decryption)","Hacking","Formatting"], a:1, e:"Dekripsi adalah kunci membalikkan pengacakan matematika yang direkayasa."},
+      {q:"Mesin enkripsi mekanik Jerman yang sangat rumit pada Perang Dunia II yang akhirnya diretas oleh bapak komputasi modern Alan Turing bernama...", o:["Babbage Engine","Mesin Enigma","Deep Blue","Commodore 64"], a:1, e:"Alan Turing membuat komputer purba 'Bombe' untuk membongkar sandi Nazi yang dikira tak tertembus."},
+      {q:"Dalam era modern digital, enkripsi yang menggunakan SATU kunci rahasia yang sama persis untuk mengunci (Enkripsi) dan membuka (Dekripsi) disebut kriptografi...", o:["Kunci Publik","Kunci Simetris (Symmetric-Key)","Tanpa Kunci","Fisika Kuantum"], a:1, e:"Metode paling cepat namun rentan jika kuncinya dicuri kurir (Key Distribution Problem)."},
+      {q:"Terobosan algoritma kriptografi internet asimetris modern yang menggunakan 'sepasang' kunci berbeda—(Kunci Publik untuk mengunci, Kunci Privat rahasia untuk membuka)—disebut...", o:["Algoritma AES","Public-Key Cryptography (seperti RSA)","Caesar Box","Hashing"], a:1, e:"Revolusi ini memungkinkan dua komputer asing bertukar rahasia tanpa harus mengirim password via pos."},
+      {q:"Kekuatan keamanan *brute-force* algoritma RSA (Rivest-Shamir-Adleman) bergantung pada problem 'Mustahil/Sangat Sulit' di ranah ilmu matematika murni, yaitu...", o:["Perhitungan Kalkulus dasar","Mencari dua faktor bilangan prima raksasa (Prime Factorization) dari sebuah bilangan ribuan digit","Menyelesaikan Trigonometri","Menghitung limit Aljabar"], a:1, e:"Sangat mudah mengalikan dua prima, namun mustahil bagi komputer saat ini melacak mundur akar prima dari hasil kalinya."},
+      {q:"Metode matematis searah (*one-way function*) yang mengubah pasword Anda menjadi *fingerprint* unik teks acak pendek tapi tak bisa dibalikkan lagi menjadi aslinya, digunakan di basis data website disebut sistem...", o:["ZIP Extract","Cryptographic Hash (seperti SHA-256)","Caesar Rotate","Steganography"], a:1, e:"Server tidak pernah menyimpan password asli Anda, melainkan hanya menyimpan Hash-nya."},
+      {q:"Menyembunyikan pesan rahasia di dalam *pixel* gambar biasa sehingga secara kasat mata gambar terlihat normal disebut dengan cabang ilmu...", o:["Kriptoanalisis","Steganografi","Fisika Optik","Fotografi"], a:1, e:"Berbeda dengan Kriptografi (mengacak isi), Steganografi murni 'menyembunyikan keberadaan' isi dokumen tersebut."},
+      {q:"Protokol keamanan gembok internet modern berlogo hijau HTTP yang melindungi data kartu kredit dari penyadapan saat belanja *online* dikenal dengan singkatan...", o:["VPN (Virtual Private Network)","SSL/TLS (HTTPS)","LAN (Local Area Network)","FTP (File Transfer)"], a:1, e:"Hypertext Transfer Protocol Secure menggunakan negosiasi asimetris RSA/ECC."},
+      {q:"Ancaman komputasi teoritis masa depan terbesar yang diramalkan akan menghancurkan algoritma RSA dalam hitungan jam karena kemampuannya memfaktorkan prima ekstrem disebut...", o:["Ransomware","Komputer Kuantum (Quantum Computer)","Virus Trojan","Komputer Super Cray"], a:1, e:"Berbekal algoritma Shor, qubit kuantum diprediksi menembus tembok RSA masa kini."},
+      {q:"Teknologi jurnal besar desentralisasi terdistribusi publik (*Distributed Ledger*) yang menjamin transaksi *Bitcoin* kebal dari pemalsuan karena dienkripsi fungsi Hash secara berantai adalah teknologi...", o:["Database MySQL biasa","Blockchain","Sistem Cloud Google","Spreadsheet Excel"], a:1, e:"Kumpulan blok data diikat secara kriptografis sehingga tak bisa diganti ke belakang."},
+      {q:"Ilmuwan Inggris yang memecahkan sandi Enigma dan meletakkan dasar teori algoritma komputer (Turing Machine) sekaligus dianggap pahlawan perang digital adalah...", o:["Albert Einstein","Alan Turing","Nikola Tesla","Thomas Edison"], a:1, e:"Turing memendekkan durasi PD II secara signifikan berkat kemampuan analitik dan matematikanya."},
+      {q:"Teknik *hacker* mencoba menebak *password/key* enkripsi dengan memprogram *script* yang mengacak semua miliaran kemungkinan kombinasi huruf/angka sampai ketemu disebut serangan...", o:["Phishing (Tipuan web palsu)","Brute Force Attack (Kekuatan Penuh/Kasar)","Social Engineering (Rekayasa Sosial)","Malware Injection"], a:1, e:"Algoritma bit modern dibuat panjang (contoh: 256-bit) murni agar serangan ini butuh waktu triliunan tahun."},
+      {q:"Grup elit seperti Omni Sync selalu menganjurkan agar anggota komunitas menjaga privasi *cyber* mereka via aplikasi obrolan karena sistem pesannya sudah terlindungi protokol kriptografi...", o:["Open Server Data","End-to-End Encryption (E2EE)","Plain Text Signal","Enkripsi Parsial"], a:1, e:"E2EE berarti hanya pengirim dan pembaca akhir yang memegang kunci privat. Server aplikasi WhatsApp/Signal itu sendiri pun buta akan isi chatnya."}
+    ]
+  },
+  {
+    id:"psikologi2", judul:"Psikologi: Bias Konfirmasi", kategori:"Psikologi Kognitif", ikon:"🧠",
+    ringkas:"Manusia hanya mau mendengar apa yang sudah sejalan dengan isi kepalanya.",
+    teks:"Bias Konfirmasi (Confirmation Bias) adalah kelemahan naluri kognitif fatal manusia modern. Fenomena ini merujuk pada kecenderungan insting untuk hanya mencari, menafsirkan, mengingat, dan mempercayai informasi yang mendukung/sejalan dengan keyakinan pribadi sebelumnya. Secara simultan, otak akan 'membutakan diri' atau mencari ribuan alasan menolak data keras empiris yang menentang asumsianya. Di era digital, algoritma media sosial mengeksploitasi bias ini hingga menciptakan ruang gema (*Echo Chamber*).",
+    contoh:"Orang yang yakin Bumi itu datar akan mengabaikan ratusan *paper* fisika satelit, tapi girang kegirangan saat melihat satu video YouTube amatir bersuara misterius yang tampak mendukung keyakinannya tersebut.",
+    soal:[
+      {q:"Bias Konfirmasi (Confirmation Bias) secara akademis didefinisikan sebagai kecenderungan psikologis seseorang untuk secara tidak sadar...", o:["Mencari data yang netral","Hanya menyeleksi dan percaya pada informasi yang mendukung opini/kepercayaan awalnya","Berpikiran terbuka luas","Membaca jurnal ilmiah"], a:1, e:"Ini adalah cara instan otak menghemat energi, menghindari konflik mental."},
+      {q:"Akibat utama bias konfirmasi di kehidupan sosial adalah seseorang akan menjadi sangat...", o:["Toleran dan objektif","Dogmatis, tertutup, dan fanatik terhadap kebenaran asumsianya sendiri","Pintar","Cepat kaya"], a:1, e:"Dogma tumbuh subur ketika bukti bantahan tidak pernah diizinkan masuk ke pikiran."},
+      {q:"Gejala psikologis ketidaknyamanan batin yang luar biasa saat seseorang dihadapkan pada fakta empiris yang membongkar keyakinan fanatiknya disebut distorsi...", o:["Bystander Effect","Cognitive Dissonance (Disonansi Kognitif)","Stockholm Syndrome","Pluralistic Ignorance"], a:1, e:"Konflik batin akibat benturan keyakinan lama vs fakta baru."},
+      {q:"Bias ini berevolusi pada nenek moyang mamalia kita *Sapiens* karena otak dirancang primitif untuk lebih memprioritaskan fungsi...", o:["Pencarian fakta saintifik absolut","Ketahanan ego (Ego defense), identitas suku/kelompok, dan energi mental yang murah","Rumus algoritma matematika","Mengapresiasi seni estetika"], a:1, e:"Sangat mahal bagi kalori otak secara evolusioner untuk selalu meragukan segalanya."},
+      {q:"Dalam eksperimen psikologi pembuktian kartu kognitif sederhana (Wason Selection Task), mayoritas orang terjebak secara logika murni karena mereka cenderung selalu memilih kartu yang...", o:["Bisa menyalahkan hipotesisnya","Mencoba MEMBENARKAN aturan hipotesis aslinya (berusaha mengonfirmasi)","Warna merah","Warna genap"], a:1, e:"Orang jarang mengambil langkah 'menguji untuk mencari tahu apakah aturan saya ini salah'."},
+      {q:"Kondisi mengerikan di era digital di mana pengguna dipenjara dalam 'gelembung' komunitas *online*—hanya berisi opini sejenis—tanpa pernah terekspos pihak oposan disebut realitas...", o:["Echo Chamber (Ruang Gema) / Filter Bubble","Marketplace Sosmed","Public Square","Network Effect"], a:0, e:"Kumpulan orang berpikiran sama saling memvalidasi dogma buta karena algoritma memfilter sisanya."},
+      {q:"Algoritma jejaring sosial (seperti TikTok, YouTube, IG, Facebook) dengan sengaja mengeksploitasi dan memperparah fenomena *Confirmation Bias* demi mendongkrak satu tujuan perusahaan, yaitu metrik...", o:["Edukasi Publik (Literasi global)","Engagement (waktu tonton panjang & retensi *scroll* pemicu hormon dopamin)","Kesehatan mental (*Mental health*)","Perdamaian politik antar benua"], a:1, e:"Memperlihatkan fakta yang dibenci pengguna akan membuat pengguna muak dan menutup aplikasi (berdampak buruk ke iklan)."},
+      {q:"Ketika dua pihak berdebat politik buta secara daring lalu keduanya disodorkan sebuah *paper* statistik yang SAMA PERSIS, efek bias konfirmasi akan membuat keduanya...", o:["Sadar bahwa mereka berdua keliru","Memakai bagian paper yang menguntungkannya untuk makin yakin dirinya benar (Polarisasi makin tajam)","Mendadak saling berpelukan dan menangis","Keluar grup sosmed tanpa sepatah kata"], a:1, e:"Fenomena ini disebut Backfire Effect: data netral ditekuk untuk memperkuat benteng masing-masing pihak."},
+      {q:"Sikap fundamental dalam metodologi penelitian Sains murni yang dirancang secara spesifik untuk menghancurkan bias konfirmasi sang ilmuwan (Konsep Falsifikasi Karl Popper) berwujud prinsip...", o:["'Sebuah teori ilmiah sejati haruslah bisa diuji untuk dibuktikan SALAH/Falsify'","'Ilmuwan harus mencari bukti bahwa teorinya pasti absolut benar'","'Teori tidak boleh dites secara kasar'","'Cukup gunakan voting suara'"], a:0, e:"Sains tidak membuktikan 'kebenaran absolut', sains membongkar/mengeliminasi kebohongan dan probabilitas palsu."},
+      {q:"Bias konfirmasi ini menyebabkan maraknya fenomena di masyarakat awam ketika menangani isu kesehatan. Fenomena tersebut paling jelas terjadi pada kasus dogma...", o:["Gerakan diet gula ketat","Gerakan Anti-Vaksin atau peracikan *pseudo-medicine* (Obat gaib/alternatif) berbahaya tanpa uji klinis","Tindakan ke UGD saat patah tulang","Operasi katarak modern"], a:1, e:"Seorang *anti-vaxxer* akan mengabaikan sejuta bukti anak sehat yang disuntik, dan menyorot mati-matian satu anak yang malang kebetulan demam pasca divaksin."},
+      {q:"Langkah sadar tingkat tinggi (*Active Metacognition*) terberat yang bisa diambil individu untuk mendobrak dinding bias konfirmasi miliknya sendiri adalah praktik sengaja melakukan hal...", o:["Mengisolasi diri di hutan secara fisik 5 tahun","Secara sadar, sukarela, & objektif membedah dan mencari argumen/fakta terbaik dari PIHAK LAWAN (Prinsip Amal)","Hanya membaca ulang catatannya setiap malam","Tidur cepat setiap jam 7 malam"], a:1, e:"Memaksa otak melintasi *echo-chamber* adalah tameng rasionalitas."},
+      {q:"Bias di mana manusia memuji kecerdasannya sendiri mati-matian saat sukses gemilang, tapi saat ia gagal total ia akan beralasan mencari kambing hitam di luar kendalinya (Sial, Cuaca buruk, Dicurangi orang), disebut kerancuan...", o:["Dunning-Kruger Effect","Self-Serving Bias","Halo Effect Bias","Sunk Cost Fallacy"], a:1, e:"Rasionalisasi pelindung ego murahan dari rasa malu atas inkompetensi absolut."},
+      {q:"Apabila forum diskusi intelektual (seperti Omni Sync) menemukan adanya member grup yang terkena *Confirmation Bias* parah, penangkal terbaik dalam budaya komunitas rasional adalah...", o:["Saling lempar hinaan dan *meme* sarkas","Segera menendang tanpa penjelasan","Membedahnya melalui bedah metode ilmiah dan membanjirinya dengan tumpukan rujukan paper akademis valid secara dingin","Membuat *voting* polling grup"], a:2, e:"Fakta dan metode murni (Dialektika berbasis literatur) adalah pedang terkuat atas kesombongan berbasis opini."},
+      {q:"Kejadian di mana bias keyakinan/harapan sugesti pasien bisa benar-benar meringankan gejala biologis penyakit meski yang diminum hanya pil gula kosong dari dokter palsu dikenal dunia sains medis sebagai efek kognitif...", o:["Antibiotik Resistensi super","Placebo Effect","Nocebo","Penolakan Organ"], a:1, e:"Keyakinan otak (sugesti alam bawah sadar pasien) sanggup mengubah respon imun fisis."},
+      {q:"Istilah efek *Halo (Halo Effect)*, bias saudara dari konfirmasi (bias kognitif), merujuk pada penilaian irasional publik di mana orang cenderung menilai...", o:["Semua opini sains itu konspirasi iluminati murni","Bahwa karena seseorang berwajah cakap/cantik/karismatik, maka argumennya PASTI benar dan orang tersebut suci","Hantu dan entitas ghaib ada di balik langit","Angka 13 membawa sial"], a:1, e:"Asumsi bahwa satu atribut positif menular menjamin kesempurnaan pada dimensi karakter dan intelektualitas lainnya."}
+    ]
+  },
+  {
+    id:"game1", judul:"Teori Permainan (Game Theory)", kategori:"Matematika Sosial", ikon:"♟️",
+    ringkas:"Kalkulasi logis saat untung-rugi bergantung pada keputusan makhluk rasional lain.",
+    teks:"Teori Permainan adalah cabang matematika terapan yang menelaah secara strategis pengambilan keputusan dan interaksi di antara entitas/pemain yang sama-sama rasional dan punya tujuan mandiri. Konsep klasiknya adalah *Prisoner's Dilemma* (Dilema Tahanan) yang membuktikan fenomena kejam: dua individu yang berakal sehat mungkin *tidak* akan bekerja sama, meskipun secara perhitungan matematika jika mereka bekerja sama, itu adalah skenario yang paling untung/menguntungkan (Optimal) bagi mereka berdua secara makro.",
+    contoh:"Dua negara yang saling mencurigai terus menaikkan budget anggaran Nuklir mereka (Perlombaan Senjata/Arms Race). Padahal kalau keduanya sepakat 'Stop produksi Nuklir', mereka bisa memakai triliunan uang itu untuk ekonomi dan riset. Tapi karena takut 'Dikhianati duluan', mereka terjebak pada pilihan terburuk (Nash Equilibrium sub-optimal).",
+    soal:[
+      {q:"Ilmu matematika interaksi strategis untuk menelaah perilaku persaingan dan kerjasama dari pengambil keputusan rasional ini dikenal di ranah akademi sebagai kajian...", o:["Teori Relativitas Khusus","Game Theory (Teori Permainan)","Teori Evolusi Darwin","Chaos Theory (Teori Kekacauan)"], a:1, e:"Bukan permainan game digital, tapi *game* sebagai model benturan *decision-making*."},
+      {q:"Skenario simulasi yang paling legendaris dalam disiplin Teori Permainan yang mendemonstrasikan paradoks rasionalitas egois penghambat kerjasama itu dinamakan dilema interogasi...", o:["Monty Hall Problem","Prisoner's Dilemma (Dilema Tahanan)","Trolley Problem (Dilema Kereta)","Paradoks Fermi"], a:1, e:"Jika dua penjahat sama-sama tutup mulut (Kooperasi), mereka bebas. Tapi insting untuk berkhianat duluan sering memenjarakan mereka berdua."},
+      {q:"Jika total keuntungan seorang pihak harus persis berakar dari angka KERUGIAN pihak kompetitornya yang setara (Apa yang dia menangkan = Apa yang kau hilangkan), skenario kompetitif tanpa ampun ini disebut...", o:["Non-Zero-Sum Game","Zero-Sum Game (Permainan Jumlah-Nol)","Win-Win Solution Game","Positive-Sum Game"], a:1, e:"Seperti permainan Catur atau Poker ketat. Kemenangan Anda murni dari kekalahan lawan."},
+      {q:"Sebaliknya, interaksi dagang atau kerja sama antar ilmuwan/negara di mana nilai akhir *kue* menjadi semakin besar sehingga *KEDUA* belah pihak bisa sama-sama untung bersama, disebut matriks...", o:["Zero-Sum Game murni","Negative-Sum Game","Non-Zero-Sum / Win-Win / Positive-Sum Game","Loser Game"], a:2, e:"Perdagangan global dan kolaborasi sains bersifat *Positive-sum* (semua terangkat taraf hidupnya)."},
+      {q:"Tokoh matematikawan skizofrenia jenius pemenang Hadiah Nobel (diabadikan film 'A Beautiful Mind') yang memformalkan keseimbangan strategi sistem Teori Permainan modern ini adalah...", o:["Alan Turing","John Forbes Nash Jr.","Albert Einstein","Isaac Newton"], a:1, e:"Penemu konsep 'Nash Equilibrium' di mana tak ada pemain yang mau mengubah strateginya sepihak."},
+      {q:"Dalam terminologi 'Nash Equilibrium', sebuah sistem/permainan dianggap sudah mencapai titik keseimbangan (Equilibrium) kaku apabila...", o:["Permainan mendadak dihentikan secara sepihak","Tidak ada SATU PUN pemain yang mau secara sukarela MENGUBAH strategi keputusannya, biarpun tahu strategi keseluruhan pemain lawan","Semua pemain kalah telak sekaligus","Papan catur meledak"], a:1, e:"Titik buntu yang sangat stabil (bukan berarti yang paling menguntungkan) karena deviasi sepihak hanya membawa kerugian ganda baginya."},
+      {q:"Aplikasi paling kentara dari 'Prisoner's Dilemma' skala raksasa dalam kancah panggung politik sejarah nyata adalah konflik geopolitik...", o:["Perang Kemerdekaan Amerika awal","Perang Dingin & Perlombaan Nuklir USA-Uni Soviet","Revolusi Pertanian","Pembentukan PBB pertama"], a:1, e:"Logika *MAD (Mutually Assured Destruction)* memaksa dua *superpower* menumpuk ribuan rudal, walau optimalnya tak usah membuat sama sekali."},
+      {q:"Skenario 'Tragedy of the Commons' (Tragedi Kepemilikan Bersama) sering berujung malapetaka karena entitas rasional didorong motivasi egois untuk mengeksploitasi aset...", o:["Pribadinya secara hati-hati","Aset gratis milik publik/lingkungan sebanyak mungkin demi untung jangka pendek, sebelum orang lain mengambilnya","Asing yang dirampoknya","Bank Swiss"], a:1, e:"Contoh klasik kepunahan ikan (Overfishing) dan pencemaran udara industri."},
+      {q:"Bagaimana *Game Theory* merumuskan strategi optimal (kemenangan mutlak berulang) dalam turnamen simulasi berulang kali (Iterated Prisoner's Dilemma)? Strategi komputer tersebut dijuluki kode algoritma...", o:["Tit for Tat (Mata ganti Mata, Kooperasi di awal, lalu balas meniru)","Random Choice Generator","Selalu Khianat Secara Brutal","Selalu Menyerah total"], a:0, e:"Strategi Anatol Rapoport: Mulai kooperasi dengan ramah, dan jika dikhianati, langsung hukum balik, jika damai, damai lagi (Forgiving). Sangat *survivable* dan adaptif secara logis."},
+      {q:"Krisis eksistensial global seperti perubahan iklim sulit diselesaikan oleh dewan PBB akibat efek hambatan psikologis Teori Permainan yang disebut faksi...", o:["Bystander Effect murni","Masalah Penumpang Gelap (Free-Rider Problem)","Overconfidence Bias absolut","Halo Effect murni"], a:1, e:"Negara-negara menunggu negara lain memotong emisi dulu (mengeluarkan biaya), sementara dia enak-enakan *ngikut menikmati* hasilnya (Free-rider)."},
+      {q:"Jika diterapkan pada struktur persaingan Oligopoli perusahaan pasar modal, praktik pembentukan 'Kartel' (seperti kartel BBM/Telekomunikasi) yang melarang perang tarif diskon pada dasarnya adalah perwujudan dari skema...", o:["Permainan adil dan murni transparan","Kolusi kooperatif ilegal menghindari matriks kerugian *Prisoner's Dilemma* agar bisa mencekik rakyat konsumen bersama-sama","Teori Gravitasi Murni","Teori Evolusi Darwin"], a:1, e:"Kartel adalah bentuk pemain curang yang memaksa sistem menaikkan harga pasar *equilibrium* semu demi memaksimalkan laba *positive-sum* di antara mafia saja."},
+      {q:"Matematika probabilitas rasional mengajarkan dalam skenario 'Ultimatum Game' (Anda membagi Rp100.000 dengan kawan), apabila rasio Anda tidak 'Adil' (Misal Rp99.000 untuk Anda, Rp1.000 untuknya), pihak kedua secara psikologi naluriah manusia akan cenderung merespon dengan...", o:["Menerima senang hati secara logis matematis (Mending dapat Rp1.000 daripada 0 rupiah)","Menolak mentah-mentah demi menghukum keserakahan (emosi keadilan menolak angka logis murni)","Pergi begitu saja tanpa respons balik","Pura-pura tuli selamanya"], a:1, e:"Ternyata, *Game Theory* sering harus digabung *Behavioral Economics* karena manusia murni digerakkan dorongan emosional (Rasa ketidakadilan), bukan hanya insting rasio utilitas kalkulator semata."},
+      {q:"Bentuk paradoks persaingan ekstrem *Game theory* di lelang pasar properti—di mana sang Pemenang Lelang akhirnya membayar jauh *lebih mahal* dari nilai intrinsik aset tersebut (Overbidding karena tensi panik kompetisi)—disebut dengan jebakan fenomena malang bernama...", o:["Bystander Tragedy Effect","Winner's Curse (Kutukan Sang Pemenang)","Sunk Cost Fallacy absolut","Puncak Gunung Murni"], a:1, e:"Terbawa arus *game* kompetitif, akhirnya dia menang lelang *tapi* rugi bandar besar (Negative Utility) secara empirik."},
+      {q:"Apa pandangan objektif OMNI SYNC memandang aplikasi logika *Game Theory* bagi peradaban masyarakat cerdas?", o:["Sebagai metode menebak togel/kupon lotere murni harian","Kerangka model matematika keras nan dingin untuk mendesain kebijakan sistem insentif yang meminimalkan pengkhianatan birokrat dan mendorong kesejahteraan global secara sadar (Optimal)","Sekadar asumsi permainan tanpa bukti klinis di lapangan logis","Bahan berdebat ad hominem secara absolut di grup terbuka"], a:1, e:"Sistem yang baik harus tahan korupsi dengan merancang *payoff/insentif* logis yang membuat orang lebih untung berbuat jujur daripada curang."},
+      {q:"Lelang 5G spektrum gelombang radio yang diselenggarakan pemerintahan telkom modern berhasil meraup miliaran dolar yang adil dengan menggunakan rancangan sistem kompleks hasil riset langsung penemuan...", o:["Fisikawan kuantum modern dunia absolut","Ekonom Teori Permainan lelang milenial murni (seperti Milgrom & Wilson, Nobel 2020)","Petani agrikultur prasejarah murni","Sastrawan klasik perancis"], a:1, e:"*Auction Theory* (Teori Lelang) telah diaplikasikan sukses mengatur tatanan ekonomi yang rumit secara matematis dan probabilitas di lelang pita jaringan telekomunikasi antar korporasi."}
+    ]
+  }
+];
+
+/* ============================================================
+   STATE & FUNGSI INTI
+   ============================================================ */
+const appEl = document.getElementById("app");
+const state = { view:"home", param:null, soalSet:[], qIdx:0, skor:0, jawabanUser:[] };
+
+/**
+ * Mengambil data progres kuis pengguna.
+ * @returns {Object} Data progres pengguna.
+ */
+function getSkor(){ 
+  try { 
+    return JSON.parse(localStorage.getItem("omnisync_skor")||"{}"); 
+  } catch(e){ 
+    return {}; 
+  } 
+}
+
+/**
+ * Menyimpan progres materi yang telah diselesaikan.
+ * @param {string} id ID materi yang telah dikerjakan.
+ */
+function setSkor(id){ 
+  const s = getSkor(); 
+  s[id] = true; 
+  try{ 
+    localStorage.setItem("omnisync_skor", JSON.stringify(s)); 
+  }catch(e){} 
+}
+
+/**
+ * Mengecek apakah materi sudah diselesaikan dengan akurasi memadai.
+ * @param {string} id ID materi.
+ * @returns {boolean}
+ */
+function cekSelesai(id){ 
+  return getSkor()[id] === true; 
+}
+
+/**
+ * Fungsi untuk mengacak urutan elemen dalam sebuah array (Fisher-Yates Shuffle).
+ * @param {any[]} arr Array yang akan diacak.
+ * @returns {any[]} Array dengan elemen yang telah diacak.
+ */
+function acakArray(arr) {
+  let array = [...arr];
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+/**
+ * Fungsi *Router* untuk navigasi antar-halaman secara responsif.
+ * @param {string} view Nama tampilan yang akan dimuat.
+ * @param {number|null} param Parameter atau indeks materi (jika relevan).
+ */
+function go(view, param = null) {
+  state.view = view;
+  if(param !== null) state.param = param;
+  renderApp();
+}
+
+function renderApp() {
+  if(state.view === 'home') renderHome();
+  else if(state.view === 'tentang') renderTentang();
+  else if(state.view === 'materi') renderMateri();
+  else if(state.view === 'detail') renderDetail();
+  else if(state.view === 'quiz_config') renderQuizConfig();
+  else if(state.view === 'kuis') renderKuis();
+  else if(state.view === 'hasil') renderHasil();
+  else if(state.view === 'selesai') renderSelesai();
+}
+
+/* ============================================================
+   KOMPONEN UI REUSABLE
+   ============================================================ */
+
+const promosiLinks = `
+  <div class="footer-promo">
+    <h3 style="text-align:center;font-size:16px; margin-bottom:15px; color:#f8fafc; letter-spacing: 1px;">
+      🔗 SINKRONISASI JARINGAN OMNI SYNC 🔗
+    </h3>
+    <div class="promo-grid">
+      <a class="promo-wa" href="https://chat.whatsapp.com/DAceqnk0HAQ8XI9r0Sepkp?s=sh&p=a&mlu=4&ilr=4" target="_blank">
+        <span class="icon">💬</span>Grup Diskusi WA</a>
+      <a class="promo-ch" href="Https://whatsapp.com/channel/0029Vb7xWPN8V0tgEip3tj0g" target="_blank">
+        <span class="icon">📢</span>Saluran Inti WA</a>
+      <a class="promo-ig" href="https://www.instagram.com/omnisync.id?stkn=eWQzZHpweWtoM21y" target="_blank">
+        <span class="icon">📸</span>Instagram</a>
+      <a class="promo-tt" href="https://www.tiktok.com/@omni.sync.id?_r=1&_t=ZS-99vwrlVdZE0" target="_blank">
+        <span class="icon">🎵</span>TikTok Resmi</a>
+    </div>
+  </div>`;
+
+function getStatBar() {
+  const skor = getSkor();
+  const total = MATERI.length;
+  let selesai = Object.keys(skor).length;
+  const pct = Math.round((selesai/total)*100);
+  return `
+    <div class="stat-bar">
+      <span style="color:#0ea5e9;">Progres Analitik</span>
+      <div class="prog"><div style="width:${pct}%"></div></div>
+      <span style="color:#0ea5e9;">${selesai}/${total}</span>
+    </div>`;
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function renderHome() {
+  const html = `
+    <div class="animasi-halaman">
+      <div class="teks-pusat" style="margin-top: 15px;">
+        <h1 style="margin-bottom: 5px; font-size:30px; letter-spacing:1.5px;">OMNI SYNC</h1>
+        <p style="color:#7dd3fc; font-style:italic; font-size:15px; font-weight:600; margin-top:0;">Wadah Konvergensi Intelektual</p>
+      </div>
+      
+      <div class="kotak" style="margin-top: 30px;">
+        <p><b>Selamat datang di Stasiun Sentral Pemikiran.</b></p>
+        <p>Omni Sync menjembatani Sains, Teknologi, Matematika, Sejarah, hingga Filsafat ke dalam satu orbit rasional. Di sini, asumsi dipatahkan oleh data empiris, dan dialektika dibangun di atas fondasi logika kritis.</p>
+        <div style="text-align:center;margin-top:20px;display:flex;flex-wrap:wrap;justify-content:center;">
+          <span class="badge">🔬 Sains Murni</span> 
+          <span class="badge">💻 Tech AI</span> 
+          <span class="badge">🏛️ Sejarah Sapiens</span> 
+          <span class="badge">🧠 Neuro & Psikologi</span>
+          <span class="badge">♾️ Matematika Logis</span>
+        </div>
+      </div>
+
+      <div class="panduan">
+        <h3 style="font-size:16px; border-bottom: 1px solid rgba(56,189,248,0.2); padding-bottom:10px;">Protokol Stasiun:</h3>
+        <p><span class="step">1</span> Tekan <b>"Inisialisasi Sistem"</b> untuk membuka direktori *Knowledge Base*.</p>
+        <p><span class="step">2</span> Pilih satu dari <b>15 Modul Intelektual</b> tingkat tinggi.</p>
+        <p><span class="step">3</span> Uji batas kognitif melalui mesin evaluasi (5, 10, atau 15 Soal Acak).</p>
+      </div>
+
+      ${getStatBar()}
+
+      <button class="btn biru" style="font-size: 16px; padding: 20px; letter-spacing:1px;" onclick="go('materi')">
+        🚀 INISIALISASI SISTEM — BUKA ARSIP
+      </button>
+      <button class="btn" style="text-align:center;" onclick="go('tentang')">ℹ️ Baca Manifesto OMNI SYNC</button>
+      
+      ${promosiLinks}
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderTentang() {
+  const html = `
+    <div class="animasi-halaman">
+      <h2>🌐 MANIFESTO OMNI SYNC</h2>
+      <div class="kotak">
+        <p style="font-size:15.5px; font-weight:600; line-height:1.8;">
+          Wadah konvergensi intelektual & sinkronisasi gagasan. Tempat sains murni, arsitektur teknologi, probabilitas matematika, alur sejarah, & dialektika filsafat berpadu. Semua perspektif bernilai sejauh diselaraskan dengan data empiris, nalar logis, & literatur keterbukaan pikiran.
+        </p>
+        <p style="color:#0ea5e9; text-align:center; font-weight:800; font-style:italic; font-size:16px;">Tundukkan dogmatisme, rangkul rasionalitas.</p>
+      </div>
+      
+      <div class="kotak">
+        <h3>🧠 PRINSIP ARSITEKTUR KITA:</h3>
+        <ul style="padding-left:18px; margin-bottom:0; line-height: 1.8;">
+          <li><span class="highlight">Sinergi Disiplin:</span> Penghancuran pembatas semu ilmu pengetahuan.</li>
+          <li><span class="highlight">Otot Rasio Murni:</span> Evaluasi argumen bersandarkan metodologi ilmiah.</li>
+          <li><span class="highlight">Skala Inklusif:</span> Komunitas netral, melampaui sekat SARA secara universal.</li>
+        </ul>
+      </div>
+
+      <div class="kotak" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(153, 27, 27, 0.1);">
+        <h3 style="color: #f87171;">📜 PROTOKOL LARANGAN KERAS:</h3>
+        <ul style="padding-left:18px; margin-bottom:0; line-height: 1.8;">
+          <li><b>Validasi Observasi:</b> Klaim tanpa beban rujukan/empiris ditolak mentah.</li>
+          <li><b>Cacat Logika Personal:</b> Penggunaan <i>Ad Hominem</i> (serangan pribadi) / Isu SARA berujung pemutusan paksa koneksi (Kick).</li>
+          <li><b>Dekontaminasi Jaringan:</b> Tidak ada toleransi bagi disinformasi/pseudosains massal dan perilaku <i>Spam</i>.</li>
+        </ul>
+      </div>
+
+      <button class="btn ok" style="padding: 18px; margin-top:20px;" onclick="go('home')">⬅ Kembali ke Terminal Stasiun Utama</button>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderMateri() {
+  let btnList = "";
+  MATERI.forEach((m, idx) => {
+    const isDone = cekSelesai(m.id);
+    const borderCls = isDone ? "border-color:#22c55e; background: rgba(34,197,94,0.05);" : "";
+    const badgeHtml = isDone ? `<span class="badge badge-done" style="float:right; padding: 2px 8px; font-size:10px;">✅ Tervalidasi</span>` : "";
+    btnList += `
+      <button class="btn" style="${borderCls}" onclick="go('detail', ${idx})">
+        <div style="display:flex; align-items:center;">
+          <span style="font-size:26px; margin-right:12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));">${m.ikon}</span> 
+          <div style="flex:1;">
+            <div style="font-size:12px; color:#0ea5e9; font-weight:800; letter-spacing:1px; margin-bottom:2px;">
+              [ MODUL: ${m.kategori.toUpperCase()} ]
+            </div>
+            <div style="font-size:15px; font-weight:700; color:#f1f5f9;">${m.judul}</div>
+          </div>
+        </div>
+        ${isDone ? `<div style="margin-top:8px; border-top:1px dashed rgba(34,197,94,0.3); padding-top:6px; text-align:right;">${badgeHtml}</div>` : ""}
+      </button>`;
+  });
+
+  const html = `
+    <div class="animasi-halaman">
+      <h2>📚 DIREKTORI ARSIP SENTRAL (15 MODUL)</h2>
+      <div class="kotak">
+        <p>Silakan mengunduh salah satu dari 15 arsip data *multidisciplinary* ke dalam otak Anda, lalu mulailah proses kalibrasi logis.</p>
+      </div>
+      ${getStatBar()}
+      <div style="margin-top:20px; display:grid; gap: 6px;">${btnList}</div>
+      <button class="btn" style="text-align:center; margin-top:30px; background:transparent; border: 1px dashed rgba(255,255,255,0.2); color:rgba(255,255,255,0.6);" onclick="go('home')">
+        ⬅ Batal — Kembali ke Layar Utama
+      </button>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderDetail() {
+  const m = MATERI[state.param];
+  const html = `
+    <div class="animasi-halaman">
+      <h2 style="font-size:24px;">${m.ikon} ${m.judul}</h2>
+      <div class="kotak">
+        <span class="badge" style="margin-bottom:15px; margin-left:0; font-size:13px; font-weight:800; border-color:#0284c7; background:rgba(2,132,199,0.2);">
+          KATEGORI: ${m.kategori.toUpperCase()}
+        </span>
+        <p><b>INTISARI:</b> <br/><i style="color:#7dd3fc; font-size:16px;">"${m.ringkas}"</i></p>
+        <p style="margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:15px; text-align:justify;">${m.teks}</p>
+      </div>
+      
+      <div class="kotak" style="border-left: 4px solid #38bdf8; background:rgba(15,23,42,0.8);">
+        <p>💡 <b>Aplikasi / Analog Dunia Nyata:</b><br/><i style="color:#cbd5e1;">${m.contoh}</i></p>
+      </div>
+      
+      <div class="kotak" style="text-align:center; background:rgba(14, 165, 233, 0.1); border-color:#0ea5e9;">
+        <p style="margin-bottom:15px; font-weight:700;">Data teori telah dibaca. Mulai komputasi pengujian rasional Anda.</p>
+        <button class="btn biru" style="margin:0; padding:16px;" onclick="go('quiz_config', ${state.param})">
+          ⚙️ JALANKAN EVALUASI LOGIKA
+        </button>
+      </div>
+      <button class="btn" style="text-align:center; background:transparent; border: 1px solid rgba(255,255,255,0.2); color:#94a3b8;" onclick="go('materi')">
+        ⬅ Kembali — Pilih Arsip Lain
+      </button>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderQuizConfig() {
+  const m = MATERI[state.param];
+  const html = `
+    <div class="animasi-halaman">
+      <h2>⚙️ KALIBRASI MESIN PENGUJI</h2>
+      <div class="kotak" style="text-align:center;">
+        <p>Modul Target: <br/><span class="highlight" style="font-size:18px;">[ ${m.judul} ]</span></p>
+        <p style="margin-top:15px; font-size:14px; color:#94a3b8;">Sistem AI akan menyusun instrumen pertanyaan secara acak dari pusat *database*.</p>
+        <p style="font-weight:700;">Tentukan jumlah sampel beban uji analitik:</p>
+        <div class="opsi-grid" style="flex-direction:column;">
+          <button class="btn biru" style="padding:14px;" onclick="startQuiz(5)">Lakukan 5 Soal Pendek (Ringan)</button>
+          <button class="btn biru" style="padding:14px;" onclick="startQuiz(10)">Lakukan 10 Soal (Menengah)</button>
+          <button class="btn biru" style="padding:14px; background:#0f172a; border-color:#eab308; color:#fde047; box-shadow:0 0 15px rgba(234, 179, 8, 0.2);" onclick="startQuiz(15)">
+            🔥 UJI BATTLETECH 15 SOAL (Maksimal)
+          </button>
+        </div>
+      </div>
+      <button class="btn" style="text-align:center; background:transparent; border-color:gray; color:gray;" onclick="go('detail', ${state.param})">
+        ⬅ Batalkan Kalibrasi
+      </button>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/**
+ * Memulai logika kuis, mengacak set soal berdasarkan jumlah yang dipilih.
+ * @param {number} amount Jumlah soal yang akan ditampilkan.
+ */
+function startQuiz(amount) {
+  state.soalSet = acakArray(MATERI[state.param].soal).slice(0, amount);
+  state.qIdx = 0;
+  state.skor = 0;
+  go('kuis');
+}
+
+function renderKuis() {
+  const s = state.soalSet[state.qIdx];
+  const qNum = state.qIdx + 1;
+  const total = state.soalSet.length;
+  const progressPct = ((qNum - 1) / total) * 100;
+  
+  let opsiHtml = "";
+  s.o.forEach((opsiTxt, i) => {
+    opsiHtml += `<button class="btn jawaban" onclick="cekJawaban(${i})"><span style="font-weight:800; color:#38bdf8; margin-right:8px;">${String.fromCharCode(65+i)}.</span> ${opsiTxt}</button>`;
+  });
+
+  const html = `
+    <div class="animasi-halaman" id="kuis-container">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="margin:0; font-size:18px;">ANALISIS KOGNITIF : ${qNum} / ${total}</h2>
+        <span class="badge" style="margin:0; font-size:10px; border-color:#cbd5e1; color:#cbd5e1;">MODUL: ${MATERI[state.param].kategori.toUpperCase()}</span>
+      </div>
+      
+      <div style="width:100%; height:6px; background:rgba(255,255,255,0.05); border-radius:4px; margin-bottom:20px; overflow:hidden;">
+        <div style="width:${progressPct}%; height:100%; background:linear-gradient(90deg, #0284c7, #38bdf8); transition:width 0.4s ease-out;"></div>
+      </div>
+      
+      <div class="kotak" style="font-size: 16px; font-weight:700; line-height:1.6; border-color:#0ea5e9;">${s.q}</div>
+      
+      <div id="opsi-container" style="display:grid; gap:8px;">${opsiHtml}</div>
+      
+      <div id="hasil-jawaban" style="margin-top:20px;"></div>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/**
+ * Pengecekan jawaban yang dikirimkan user untuk dibandingkan secara logika.
+ * @param {number} userIndex Nomor index opsi yang diklik oleh user (0-3).
+ */
+window.cekJawaban = function(userIndex) {
+  const s = state.soalSet[state.qIdx];
+  const isBenar = (userIndex === s.a);
+  const container = document.getElementById('opsi-container');
+  const btns = container.querySelectorAll('.btn.jawaban');
+  
+  // Kunci tombol pasca-pemilihan
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if(i === s.a) b.classList.add('benar'); // Opsi sebenarnya dighighlight Hijau
+    else if(i === userIndex && !isBenar) b.classList.add('salah'); // Jawaban meleset dihighlight Merah
+  });
+
+  if(isBenar) state.skor++;
+
+  const isLast = (state.qIdx === state.soalSet.length - 1);
+  const btnNext = isLast 
+    ? `<button class="btn biru" style="padding:16px; font-size:16px; text-transform:uppercase; letter-spacing:1px; box-shadow:0 0 20px rgba(56, 189, 248, 0.4);" onclick="go('hasil')">📊 Komputasi Nilai Akhir</button>`
+    : `<button class="btn ok" style="padding:16px;" onclick="nextQuestion()">➡ Muat Segmen Data Berikutnya</button>`;
+
+  const hasilDiv = document.getElementById('hasil-jawaban');
+  hasilDiv.innerHTML = `
+    <div class="kotak ${isBenar ? 'benar-bg' : 'salah-bg'} animasi-halaman" style="margin-bottom:20px;">
+      <h3 style="color: ${isBenar ? '#4ade80' : '#f87171'}; margin-bottom:10px; font-size:18px;">
+        ${isBenar ? '✅ KORELASI LOGIS TERKONFIRMASI' : '❌ ANOMALI DATA: LOGIKA MELESET'}
+      </h3>
+      <p style="font-size:14.5px; line-height:1.6;"><b>Fakta Evaluasi AI:</b><br/>${s.e}</p>
+    </div>
+    ${btnNext}
+  `;
+  // Gulung ke bawah secara halus
+  setTimeout(() => hasilDiv.scrollIntoView({behavior:'smooth', block:'end'}), 150);
+}
+
+window.nextQuestion = function() {
+  state.qIdx++;
+  renderKuis();
+}
+
+function renderHasil() {
+  const total = state.soalSet.length;
+  const persentase = Math.round((state.skor / total) * 100);
+  
+  // Berikan status validasi lulus jika >= 60%
+  if(persentase >= 60) setSkor(MATERI[state.param].id);
+
+  let pesan, emot, warna, karakterAI;
+  if(persentase === 100) {
+    pesan = "Akurasi Rasio Maksimal. Otak Anda sejalan sempurna dengan data empiris."; 
+    emot = "🏆"; warna = "#4ade80"; karakterAI = "// SYSTEM OVERRIDE: Logika Anda Absolut. Lulus Superior.";
+  } else if (persentase >= 75) {
+    pesan = "Probabilitas yang sangat baik. Kemampuan analitis berada di atas rata-rata populasi standar."; 
+    emot = "🔥"; warna = "#38bdf8"; karakterAI = "// STATUS: Akurasi Valid. Data Termuat.";
+  } else if (persentase >= 50) {
+    pesan = "Kalkulasi batas wajar, namun masih ditemukan *Logical Fallacy* dan *Blind Spot* di memori Anda."; 
+    emot = "⚙️"; warna = "#eab308"; karakterAI = "// PERINGATAN: Modul membutuhkan review literasi lanjutan.";
+  } else {
+    pesan = "Terdeteksi miskonsepsi akut. Sistem menyarankan pembersihan *Confirmation Bias* segera."; 
+    emot = "⚠️"; warna = "#ef4444"; karakterAI = "// ERROR: Data Corrupt. Silakan membaca ulang dari nol.";
+  }
+
+  const html = `
+    <div class="animasi-halaman" style="text-align:center; padding:10px 0;">
+      <h2 style="font-size:20px; color:#cbd5e1; letter-spacing:2px; margin-bottom:20px;">[ LAPORAN EVALUASI DIAGNOSTIK ]</h2>
+      
+      <div class="kotak" style="border: 2px solid ${warna}; background:linear-gradient(180deg, rgba(15,23,42,0.9), rgba(0,0,0,0.6)); box-shadow: 0 10px 30px ${warna}33;">
+        <div style="font-size:70px; margin:15px 0; text-shadow: 0 0 20px ${warna}88;">${emot}</div>
+        <h1 style="font-size:60px; margin:0; color:${warna}; font-family:'Orbitron', sans-serif;">${state.skor} <span style="font-size:26px; color:#64748b;">/ ${total}</span></h1>
+        
+        <div style="background:rgba(255,255,255,0.05); border-radius:10px; margin:20px auto 10px; padding:10px; max-width:80%; border:1px solid rgba(255,255,255,0.1);">
+          <p class="highlight" style="font-size:16px; margin:0; color:#f8fafc;">Akurasi Kognitif: <span style="color:${warna}; font-weight:900;">${persentase}%</span></p>
+        </div>
+        
+        <p style="margin-top:20px; font-weight:700; font-size:16px; color:#e2e8f0;">"${pesan}"</p>
+        <p class="kecil" style="margin-top:10px; color:${warna}; font-family:monospace; background:rgba(0,0,0,0.5); padding:5px; border-radius:4px; display:inline-block;">${karakterAI}</p>
+      </div>
+      
+      <div style="margin-top:35px; display:flex; flex-direction:column; gap:12px;">
+        <button class="btn ok" style="padding:18px; font-size:16px;" onclick="go('materi')">📚 SINKRONISASI MODUL LAINNYA</button>
+        <button class="btn merah" style="background:transparent; color:#ef4444;" onclick="go('selesai')">🔴 Logout — Matikan Terminal</button>
+      </div>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderSelesai() {
+  const html = `
+    <div class="animasi-halaman" style="text-align:center; padding: 20px 0;">
+      <h1 style="font-size:28px; letter-spacing:1px; color:#f8fafc;">PROTOKOL DIHENTIKAN</h1>
+      <div class="kotak" style="font-size:15px; margin-top:20px;">
+        <p>Terima kasih telah membersihkan pikiran Anda dari asumsionisme dogmatis dan mengasah ketajaman logika di stasiun intelektual <b>OMNI SYNC</b>.</p>
+        <p style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); color:#38bdf8; font-weight:700;">
+          Sistem memperingatkan Anda: Jangan berhenti pada sekadar simulasi.<br> Jika otak Anda kelaparan akan *Dialektika Tingkat Tinggi*, sains empiris yang murni, dan bedah teori tak berujung, maka bergabunglah dengan Jaringan Inti kami di dunia nyata.
+        </p>
+      </div>
+      
+      ${promosiLinks}
+      
+      <button class="btn" style="margin-top:40px; padding:18px; border-color:gray; color:gray; background:transparent;" onclick="go('home')">
+        🔄 Reboot System (Ulangi dari Awal)
+      </button>
+    </div>`;
+  appEl.innerHTML = html;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// Inisialisasi Aplikasi Pertama Kali oleh Browser (Runtime)
+go('home');
+</script>
+</body>
+</html>
